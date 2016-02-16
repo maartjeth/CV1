@@ -5,7 +5,7 @@ function [] = photometric_stereo()
     dist = 1; % dominant distance of light source (z axis in 1, x,y in rest)
     elevation = 0;%0.01; % elevation of lights 2 to 5 in z direction
 
-    ls1 = [0, 0, dist]; % note that dim1 is vertical, dim2 is horizontal, dim3 is pointing in    %% why not elevation
+    ls1 = [0, 0, -dist]; % note that dim1 is vertical, dim2 is horizontal, dim3 is pointing in    %% why not elevation
     ls2 = [-dist, -dist, elevation]; % lower right  %% upper right?
     ls3 = [dist, -dist, elevation]; % lower left  %% lower left?
     ls4 = [-dist, dist, elevation]; % upper right %% lower right?
@@ -85,7 +85,7 @@ function [] = photometric_stereo()
     end
     
     % plot surface normals
-    quiver3(res_picks, res_picks, heights_plot, -1 * normals_plot(:,:,1), -1 * normals_plot(:,:,2), normals_plot(:,:,3))
+    quiver3(res_picks, res_picks, heights_plot, normals_plot(:,:,1), normals_plot(:,:,2), normals_plot(:,:,3))
     % still not much of a clue why the dimensions don't work out naturally
     
     % plot reconstructed shape

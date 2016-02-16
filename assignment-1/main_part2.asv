@@ -2,14 +2,13 @@ function [] = main_part2()
     im_name = 'bricks.jpg';
     %im_name = 'rose.jpg';
     % for colour space, choose from: 'opp_col_space', 'rgb_col_space', 'hsv_col_space' 
-    colour_space = 'rgb_col_space';
+    colour_space = 'hsv_col_space';
     colour_spaces(im_name, colour_space);
 end
 
 % split the image into its three colour channels
 function [] = colour_spaces(im_name, colour_space)
     im = imread(im_name);
-
     
     % get the channels for the rgb colour space
     % image has 3 dimensions, third dimension is the rgb component       
@@ -37,7 +36,6 @@ function [] = colour_spaces(im_name, colour_space)
     % get normalised rgb colour space
     if strcmp(colour_space, 'rgb_col_space')
         [norm_r, norm_g, norm_b] = calc_rgb_col_space(R, G, B);
-        imshow(norm_r)
         show_first_channel(im_zeros, norm_r, 'first channel rgb colour space');
         show_second_channel(im_zeros, norm_g, 'second channel rgb colour space'); 
         show_third_channel(im_zeros, norm_b, 'third channel rgb colour space');
@@ -58,6 +56,7 @@ end
 function [] = show_first_channel(im_zeros, comp1, im_title)
     im1 = cat(3, comp1, im_zeros, im_zeros);
     figure, imshow(im1), title(im_title);
+    colormap winter
     %imwrite(im1, im_title, 'jpg')
 end
 
@@ -69,8 +68,8 @@ end
 
 function [] = show_third_channel(im_zeros, comp3, im_title)
     im3 = cat(3, im_zeros, im_zeros, comp3);
-    figure, imshow(im3, hsv), title(im_title);
-    colormap winter
+    figure, imshow(im3), title(im_title);
+        colormap winter
 end
 
 % calculate the oponent colour space, based on calculated rgb values
@@ -82,6 +81,7 @@ function [o1, o2, o3] = calc_opp_col_space(R, G, B)
 end
 
 % calculate the rgb colour space
+% NOTE: GIVES BLACK FOR ALL COMPONENTS??????
 function [r, g, b] = calc_rgb_col_space(R, G, B)
     r = double(R) ./ double(R+G+B);
     g = double(G) ./ double(R+G+B);
