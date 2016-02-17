@@ -1,9 +1,7 @@
-% Computer Vision Part 1
-% Frederik Harder - - frederikharder@gmail.com
-% Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
-
 function color_spaces(im_source, color_space, fancy)
     close all
+    iptsetpref('ImshowBorder','tight');
+    
     if nargin < 3 % default to fancy plots
         fancy = true;
     end
@@ -67,14 +65,15 @@ function split_grayscale(im_mat)
     % plot dim 1
     figure
     imshow(mat2gray(reshape(im_vals(:,:,1), size(im_vals, 1), size(im_vals, 2))))
-    
+
     % plot dim 2
     figure
     imshow(mat2gray(reshape(im_vals(:,:,2), size(im_vals, 1), size(im_vals, 2))))
-    
+
     % plot dim 3
     figure
     imshow(mat2gray(reshape(im_vals(:,:,3), size(im_vals, 1), size(im_vals, 2))))
+
 end
 
 function split_norm_rgb(im)
@@ -137,7 +136,8 @@ function split_opponent(im)
     
     min_im = double(min(min(min(im))));
     max_im = double(max(max(max(im))));
-    im = (im - min_im) ./ (max_im - min_im);  
+    
+    im = (im - min_im) ./ (max_im - min_im);
     imshow(im);
     
 
@@ -172,5 +172,6 @@ function split_opponent(im)
     im(:,:,2) = gval;
     im(:,:,3) = bval;
     im = (im - min_im) ./ (max_im - min_im);  
-    imshow(im);    
+    imshow(im);
+    
 end
