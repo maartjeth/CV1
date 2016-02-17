@@ -1,24 +1,29 @@
-function [] = photometric_stereo()
+% Computer Vision Part 1
+% 
+%
 
+function [] = photometric_stereo()
+    close all
+    
     % compute V
 
     dist = 1; % dominant distance of light source (z axis in 1, x,y in rest)
-    elevation = 0;%0.01; % elevation of lights 2 to 5 in z direction
+    elevation = 0; % elevation of lights 2 to 5 in z direction
 
-    ls1 = [0, 0, -dist]; % note that dim1 is vertical, dim2 is horizontal, dim3 is pointing in    %% why not elevation
-    ls2 = [-dist, -dist, elevation]; % lower right  %% upper right?
-    ls3 = [dist, -dist, elevation]; % lower left  %% lower left?
-    ls4 = [-dist, dist, elevation]; % upper right %% lower right?
-    ls5 = [dist, dist, elevation]; % upper left %% lower left?
+    ls1 = [0, 0, dist]; % note that dim1 is horizontal, dim2 is vertical with upper left pixel at max    
+    ls2 = [-dist, -dist, elevation]; 
+    ls3 = [dist, -dist, elevation]; 
+    ls4 = [-dist, dist, elevation]; 
+    ls5 = [dist, dist, elevation]; 
     light_sources = [ls1; ls2; ls3; ls4; ls5]; % this is V
 
-    % compute I
-
-    sp1 = imread('sphere1.png'); % frontal
-    sp2 = imread('sphere2.png'); % upper left  %% lower right?
-    sp3 = imread('sphere3.png'); % upper right %% lower left?
-    sp4 = imread('sphere4.png'); % lower left  %% upper right? 
-    sp5 = imread('sphere5.png'); % lower right %% upper left?
+    % compute i and I
+    
+    sp1 = imread('sphere1.png'); 
+    sp2 = imread('sphere2.png'); 
+    sp3 = imread('sphere3.png'); 
+    sp4 = imread('sphere4.png'); 
+    sp5 = imread('sphere5.png'); 
     spheres = {sp1; sp2; sp3; sp4; sp5};
     
     image_val_vec = zeros(size(spheres, 1), 1); % this is i
@@ -49,6 +54,7 @@ function [] = photometric_stereo()
             else
                 normals(row, col, :) = surface_prop / albedo;
             end
+            
         end
     end
     
@@ -56,6 +62,70 @@ function [] = photometric_stereo()
     p_vals = normals(:,:,1) ./ normals(:,:,3); % angle in vertical direction
     q_vals = normals(:,:,2) ./ normals(:,:,3); % angle in horizontal direction
     
+    % check for (dp/dy-dq/dx)^2 --> we don't have a complete function, so
+    % we're going to compare the differences in p and q in comparison with
+    % their previous values
+
+    mat_gradients_p = zeros(num_rows, num_cols);
+    mat_gradients_q = zeros(num_rows, num_cols);
+    
+    % get gradients p values
+    for row = 1:num_rows
+
+        if row ~= 1 % check whether you're not at the start
+            a = p_vals(row-1, :);
+        else
+            a = p_vals(row, :);
+        end
+        
+        b = p_vals(row, :);
+        
+        if row ~= num_rows % check whether you're not at the end
+            c = p_vals(row+1, :);
+        else
+            c = b;
+        end
+        
+        gradient_p1 = b - a;
+        gradient_p2 = c - b;
+        av_gradients_p = (gradient_p1 + gradient_p2) / 2; 
+        mat_gradients_p(row, :) = av_gradients_p; % add all avarage gradients to the matrix
+    end
+
+    % get gradients q values
+    for col = 1:num_cols        
+        if col ~= 1 % check whether you're not at the start
+            k = q_vals(:, col-1);
+        else
+            k = q_vals(:, col);
+        end
+        
+        l = q_vals(:, col);
+        
+        if col ~= num_cols % check whether you're not at the end
+            m = q_vals(:, col+1);
+        else
+            m = l;
+        end
+        
+        gradient_q1 = l - k;
+        gradient_q2 = m - l;
+        av_gradients_q = (gradient_q1 + gradient_q2) / 2;
+        mat_gradients_q(:, col) = av_gradients_q; % add all avarage gradients to the matrix
+    end
+    
+    diff_gradients = (mat_gradients_p - mat_gradients_q).^2;
+    
+    % change values in p and q matrix if larger than 1
+    for row = 1:num_rows
+        for col = 1:num_cols
+           if diff_gradients(row, col) > 1
+               p_vals(row, col) = 0;
+               q_vals(row, col) = 0; 
+           end 
+        end        
+    end
+       
     % get height map
     heights = zeros(num_rows, num_cols);
     
@@ -84,10 +154,10 @@ function [] = photometric_stereo()
         end
     end
     
-    % plot surface normals
-    quiver3(res_picks, res_picks, heights_plot, normals_plot(:,:,1), normals_plot(:,:,2), normals_plot(:,:,3))
-    % still not much of a clue why the dimensions don't work out naturally
-    
+    % plot surface normals (see report for more detailed explanation)
+    figure
+    quiver3(res_picks, res_picks, heights_plot, -1 * normals_plot(:,:,1), -1 * normals_plot(:,:,2), normals_plot(:,:,3))
+
     % plot reconstructed shape
     figure
     surf(res_picks, res_picks, heights_plot)    
