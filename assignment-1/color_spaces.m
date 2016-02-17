@@ -1,3 +1,6 @@
+% Computer Vision Part 1
+% Frederik Harder - - frederikharder@gmail.com
+% Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
 function color_spaces(im_source, color_space, fancy)
     close all
@@ -169,6 +172,5 @@ function split_opponent(im)
     im(:,:,2) = gval;
     im(:,:,3) = bval;
     im = (im - min_im) ./ (max_im - min_im);  
-    imshow(im);
-    
+    imshow(im);    
 end
