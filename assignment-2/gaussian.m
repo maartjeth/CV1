@@ -3,11 +3,8 @@
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
 function G = gaussian(sigma, kernelLength)
-    mean = 0; % floor(kernelLength / 2);
-    x = ceil(-0.5*kernelLength+1):floor(0.5*kernelLength);
-    
-    %0:kernelLength-1;
-    G = normpdf(x, mean, sigma);
+    x = (1:kernelLength) - ceil(kernelLength/2);
+    G = normpdf(x, 0, sigma);
     G = G / sum(G);
 end
 
