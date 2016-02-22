@@ -22,6 +22,6 @@ function imOut = gaussianConv(im_path, sigma_x, sigma_y, kernel_length, conv_opt
     im = imread(im_path);
     im = rgb2gray(im);
     
-    % apply filter and normalize pixel values
+    % apply filter and re
     imOut = conv2(filter_x, filter_y, im, conv_option) / 255;
 end
