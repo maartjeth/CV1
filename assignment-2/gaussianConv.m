@@ -24,4 +24,6 @@ function imOut = gaussianConv(im_path, sigma_x, sigma_y, kernel_length, conv_opt
     
     % apply filter and normalize pixel values
     imOut = conv2(filter_x, filter_y, im, conv_option) / 255;
+    size(im)
+    size(imOut)
 end

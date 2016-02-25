@@ -4,7 +4,7 @@
 
 function [imOut, Gd] = gaussianDer(image_path, G, sigma, conv_option)
     
-    % set default 
+    % set default conv2 shape to valid
     if nargin < 4
         conv_option = 'valid';
     end
@@ -12,7 +12,6 @@ function [imOut, Gd] = gaussianDer(image_path, G, sigma, conv_option)
     % create gaussian derivative filter Gd from gaussian filter G
     x = (1:size(G,2)) - ceil(size(G,2)/2);
     Gd = -x / sigma^2 .* G;
-    Gd = Gd / sum(Gd);
     
     % load image
     im = imread(image_path);
