@@ -2,8 +2,10 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
-function [H] = harris_corner(im_path, sigma, kernel_length)
 
+
+function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold)
+    
     % steps:
     % 1) get_i
     % 2) get_elem_q
@@ -13,9 +15,18 @@ function [H] = harris_corner(im_path, sigma, kernel_length)
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
     
+    display('getting i')
     [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y);
+    display('getting a b c')
     [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y);
-    %H = construct_h(A, B, C);
+    display('getting h')
+    H = construct_h(A, B, C, k);
+    display('getting corners')
+    [r, c] = get_corners(H, neighbour_length, threshold);
+    display('r')
+    r
+    display('c')
+    c
 end
 
 function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
@@ -23,15 +34,17 @@ function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
     % derivative, Gd, with the image along the x or y direction   
    
     % function copied from last week, but slightly modified to get the two different directions  
-    Ix = gaussianDer2(im_path, filter_x, sigma, 1); % horizontal edge filter
-    Iy = gaussianDer2(im_path, filter_y, sigma, 2); % vertical edge filter
+    % use same to get the same dimensions
+    Ix = gaussianDer2(im_path, filter_x, sigma, 1, 'same'); % horizontal edge filter
+    Iy = gaussianDer2(im_path, filter_y, sigma, 2, 'same'); % vertical edge filter
     
-    % test
+    % show the images (part of the assignment, don't delete)
     % figure, imshow(Ix);
     % figure, imshow(Iy);
     
-    size(Ix)
-    si
+    % notes
+    % Ix: 576 * 720
+    % Iy: 576 * 720
 end
 
 function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
@@ -41,20 +54,34 @@ function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
     % B: multiply Ix and Iy and convolve it with a Gaussian
     % C: squaring Iy and convolving it with a Gaussian
     
-    A = conv2(Ix.^2, filter_x, 'valid');
-    B1 = conv2(Ix, filter_x, 'valid');
-    B2 = conv2(Iy, filter_y, 'valid');
-    size(B1)
-    size(B2)
-    B = B1.*B2;
-    C = conv2(Iy.^2, filter_y, 'valid'); 
+    A = conv2(Ix.^2, filter_x, 'same');
+    B = conv2(Ix, filter_x, 'same') .* conv2(Iy, filter_y, 'same');
+    C = conv2(Iy.^2, filter_y, 'same'); 
     
-    size(A)
-    size(B)
-    size(C)
-    
+    %size(A)
+    %size(B)
+    %size(C)    
 end
 
-function [H] = construct_h(A, B, C)
-    H = (A.*B-B.^2) - 0.04*(A+C).^2; % doesn't work yet --> dimension error
+function [H] = construct_h(A, B, C, k)
+    H = (A.*B-B.^2) - k*(A+C).^2;
+end
+
+function [r, c] = get_corners(H, neighbour_length, threshold)    
+
+    import vision.*
+
+    %display('local max')
+    %imregionalmax(H, neighbour_length)
+    
+    
+    
+    r = 0;
+    c = 0;
+    
+    %A = [1 2 3 3 6 6 6 6; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 3 6 6 5 6 6 6 6; 2 3 4 4 6 6 6 6 ; 0 0 0 0 0 0 0 0 ;0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0]
+    %I2 = imhmax(A,2)
+    %imregionalmax(A,4)
+
+    %end
 end

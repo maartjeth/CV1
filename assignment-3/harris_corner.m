@@ -2,8 +2,10 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
-function [H] = harris_corner(im_path, sigma, kernel_length)
 
+
+function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold)
+    
     % steps:
     % 1) get_i
     % 2) get_elem_q
@@ -13,10 +15,18 @@ function [H] = harris_corner(im_path, sigma, kernel_length)
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
     
+    display('getting i')
     [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y);
+    display('getting a b c')
     [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y);
-    H = construct_h(A, B, C);
-    [r, c] = get_corners(H, kernel_length); % now I choose the kernel length for the filter to go over H, but we can change this
+    display('getting h')
+    H = construct_h(A, B, C, k);
+    display('getting corners')
+    [r, c] = get_corners(H, neighbour_length, threshold);
+    display('r')
+    r
+    display('c')
+    c
 end
 
 function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
@@ -53,6 +63,25 @@ function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
     %size(C)    
 end
 
-function [H] = construct_h(A, B, C)
-    H = (A.*B-B.^2) - 0.04*(A+C).^2;
+function [H] = construct_h(A, B, C, k)
+    H = (A.*B-B.^2) - k*(A+C).^2;
+end
+
+function [r, c] = get_corners(H, neighbour_length, threshold)    
+
+    import vision.*
+
+    %display('local max')
+    %imregionalmax(H, neighbour_length)
+    
+    h = vision.localMaximaFinder;
+    
+    r = 0;
+    c = 0;
+    
+    %A = [1 2 3 3 6 6 6 6; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 3 6 6 5 6 6 6 6; 2 3 4 4 6 6 6 6 ; 0 0 0 0 0 0 0 0 ;0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0]
+    %I2 = imhmax(A,2)
+    %imregionalmax(A,4)
+
+    %end
 end
