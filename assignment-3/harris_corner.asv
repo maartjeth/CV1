@@ -23,11 +23,11 @@ function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, 
     H = construct_h(A, B, C, k);
     size(H)
     display('getting corners')
-    [r, c] = get_corners(H(1:32, 1:32), neighbour_length, threshold);
-    %display('r')
-    %r
-    %display('c')
-    %c
+    [r, c] = get_corners(H, neighbour_length, threshold);
+    display('r')
+    r
+    display('c')
+    c
 end
 
 function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
@@ -79,25 +79,28 @@ function [r, c] = get_corners(H, neighbour_length, threshold)
     total_corners_found = 1;
     
     while col <= size(H, 2) 
-        display('in while')
+        %display('in while')
+        display(total_corners_found)
         display(row)
         display(col)
-        local_matrix = H(row:row+neighbour_length, col:col+neighbour_length); % slice part of matrix
+        local_matrix = H(row:row+neighbour_length-1, col:col+neighbour_length-1); % slice part of matrix
         max_value = max(local_matrix(:));
         [max_row, max_col] = find(local_matrix == max_value);
         r(total_corners_found) = max_row + (row-1); % to account for the fact that you took a slice, you need to add 'row'
         c(total_corners_found) = max_col + (col-1); % 'or col'
-        
+
         % move the filter
-        if col == size(H, 2) - neighbour_length % if we're at the end of the matrix (horizontally)
+        if col == (size(H, 2) - neighbour_length + 1) % if we're at the end of the matrix (horizontally)
             display('at the end of a colum')
             col = 1; % move your filter to the start of the matrix
             row = row + neighbour_length; % and move the filter down, to the next part
-        elseif row == size(H, 1) - neighbour_length
+            total_corners_found = total_corners_found + 1;
+        elseif row == (size(H, 1) - neighbour_length + 1)
             display('done')
             break % then you've had all parts of your matrix
+            total_corners_found = total_corners_found + 1;
         else
-            display('at the en
+            display('moving to the right')
             col = col + neighbour_length; % move the filter to the next part, but stay at the same row
         end 
     end
