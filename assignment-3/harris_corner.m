@@ -22,7 +22,7 @@ function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, 
     display('getting h')
     H = construct_h(A, B, C, k);
     display('getting corners')
-    [r, c] = get_corners(H, neighbour_length, threshold);
+    [r, c] = get_corners(H(1:320,1:320), neighbour_length, threshold);
     display('r')
     r
     display('c')
@@ -68,48 +68,24 @@ function [H] = construct_h(A, B, C, k)
 end
 
 function [r, c] = get_corners(H, neighbour_length, threshold)    
-
-    import vision.*
-
-    %display('local max')
-    %imregionalmax(H, neighbour_length)
-    
-    h = vision.localMaximaFinder;
-    
-    r = 0;
-    c = 0;
-    
-    %A = [1 2 3 3 6 6 6 6; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 3 6 6 5 6 6 6 6; 2 3 4 4 6 6 6 6 ; 0 0 0 0 0 0 0 0 ;0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0]
-    %I2 = imhmax(A,2)
-    %imregionalmax(A,4)
-
-    %end
-    
-    %row = 1;
-    %col = 1;
-    %number_corners = size(H, 1) / neighbour_length;
-    %r = zeros(number_corners, 1);
-    %c = zeros(number_corners, 1);
-    %total_corners_found = 1;
-    
-    %while row <= size(H, 1) - neighbour_length && col <= size(H, 1) - neighbour_length
-    %    local_max = threshold;
-    %    local_matrix = H(row:row+neighbour_length, col:col+neighbour_length); % slice part of matrix
-    %    max_value = max(local_matrix(:));
-    %%    [max_row max_col] = find(local_matrix == max_value);
-    %    r(total_corners_found) = max_row;
-    %    c(total_corners_found) = max_col;
-        
-        %for row = 1:neighbour_length % loop over rows
-        %    for col = 1:neighbour_length % loop over cols
-        %        if H(row, col) > local_max % find local maxima
-        %            local_max = H(row, col);
-        %            r(total_corners_found) = row; % add to r 
-        %            c(total_corners_found) = col; % add to c
-        %        end                
-        %    end
-        %end
-        %row = row + neighbour_length;
-        %col = col + neighbour_length; 
-    %    total_
+    display('getting corners')
+    row = 1;
+    col = 1;
+    number_corners = int8(size(H, 1) / neighbour_length);
+    r = zeros(number_corners, 1);
+    c = zeros(number_corners, 1);
+    total_corners_found = 1;
+        while row <= size(H, 1) - neighbour_length && col <= size(H, 1) - neighbour_length
+            display(row)
+            local_max = threshold;
+            local_matrix = H(row:row+neighbour_length, col:col+neighbour_length); % slice part of matrix
+            max_value = max(local_matrix(:));
+            [max_row, max_col] = find(local_matrix == max_value);
+            r(total_corners_found) = max_row + row; % to account for the fact that you took a slice, you need to add 'row'
+            c(total_corners_found) = max_col + col; % 'or col'
+            
+            row = row + neighbour_length;
+            col = col + neighbour_length;
+            total_corners_found = total_corners_found + 1;
+        end   
 end
