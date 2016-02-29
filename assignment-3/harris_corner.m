@@ -2,7 +2,8 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
-
+% Best setting I figured:
+% k = 0.05
 
 function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold)
     
@@ -75,14 +76,17 @@ end
 
 function [H] = construct_h(A, B, C, k)
     H = (A.*C-B.^2) - k*(A+C).^2;
-    figure, imshow(H*50);
+    figure, imshow(H*255); % had to normalise this to get results --> deleting it gives black picture
+    size(H)
 end
 
+% NOTE: I guess there's still something wrong in this function as it
+% doesn't really plot the maxima correctly
 function [r, c] = get_corners(H, neighbour_length, threshold)    
     display('getting corners')
     row = 1;
     col = 1;
-    number_corners = (size(H, 1) / neighbour_length) * (size(H, 2) / neighbour_length);
+    number_corners = (size(H, 1) / neighbour_length) * (size(H, 2) / neighbour_length); 
     display(number_corners)
     r = zeros(number_corners, 1);
     c = zeros(number_corners, 1);
@@ -102,8 +106,8 @@ function [r, c] = get_corners(H, neighbour_length, threshold)
             r(total_corners_found) = max_row(1) + (row-1); % to account for the fact that you took a slice, you need to add 'row'
             c(total_corners_found) = max_col(1) + (col-1); % 'or col'
         else
-            r(total_corners_found) = 999; % just taking a value (999) that we can filter out easily when plotting
-            c(total_corners_found) = 999;
+            r(total_corners_found) = NaN; 
+            c(total_corners_found) = NaN;
         end
 
         % move the filter
@@ -122,7 +126,7 @@ function [r, c] = get_corners(H, neighbour_length, threshold)
     end
 end
 
-function [] = plot_corners(im_path, r, c)
+function [] = plot_corners(im_path, r, c)    
     im = imread(im_path);
     imshow(im);
     %hold on
