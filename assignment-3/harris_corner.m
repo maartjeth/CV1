@@ -21,13 +21,13 @@ function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, 
     [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y);
     display('getting h')
     H = construct_h(A, B, C, k);
-    size(H)
-    display('getting corners')
+    %size(H)
+    %display('getting corners')
     [r, c] = get_corners(H, neighbour_length, threshold);
-    display('r')
-    r
-    display('c')
-    c
+    %display('r')
+    %
+    %display('c')
+    %
     
     plot_corners(im_path, r, c);
     
@@ -58,8 +58,14 @@ function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
     % B: multiply Ix and Iy and convolve it with a Gaussian
     % C: squaring Iy and convolving it with a Gaussian
     
+    % NOTE: This setting gives the best H-matrix, considering where you'd expect
+    % the corners
+    
+    filter_xy = filter_y * filter_x;
+    
     A = conv2(Ix.^2, filter_x, 'same');
-    B = conv2(Ix, filter_x, 'same') .* conv2(Iy, filter_y, 'same');
+    %B = conv2(Ix, filter_x, 'same') .* conv2(Iy, filter_y, 'same');
+    B = conv2(Ix.*Iy, filter_xy, 'same');
     C = conv2(Iy.^2, filter_y, 'same'); 
     
     %size(A)
@@ -68,7 +74,8 @@ function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
 end
 
 function [H] = construct_h(A, B, C, k)
-    H = (A.*B-B.^2) - k*(A+C).^2;
+    H = (A.*C-B.^2) - k*(A+C).^2;
+    figure, imshow(H*50);
 end
 
 function [r, c] = get_corners(H, neighbour_length, threshold)    
