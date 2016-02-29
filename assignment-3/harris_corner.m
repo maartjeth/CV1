@@ -21,12 +21,13 @@ function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, 
     [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y);
     display('getting h')
     H = construct_h(A, B, C, k);
+    size(H)
     display('getting corners')
-    [r, c] = get_corners(H(1:320,1:320), neighbour_length, threshold);
-    display('r')
-    r
-    display('c')
-    c
+    [r, c] = get_corners(H(1:32, 1:32), neighbour_length, threshold);
+    %display('r')
+    %r
+    %display('c')
+    %c
 end
 
 function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
@@ -71,21 +72,33 @@ function [r, c] = get_corners(H, neighbour_length, threshold)
     display('getting corners')
     row = 1;
     col = 1;
-    number_corners = int8(size(H, 1) / neighbour_length);
+    number_corners = size(H, 2) / neighbour_length;
+    display(number_corners)
     r = zeros(number_corners, 1);
     c = zeros(number_corners, 1);
     total_corners_found = 1;
-        while row <= size(H, 1) - neighbour_length && col <= size(H, 1) - neighbour_length
-            display(row)
-            local_max = threshold;
-            local_matrix = H(row:row+neighbour_length, col:col+neighbour_length); % slice part of matrix
-            max_value = max(local_matrix(:));
-            [max_row, max_col] = find(local_matrix == max_value);
-            r(total_corners_found) = max_row + row; % to account for the fact that you took a slice, you need to add 'row'
-            c(total_corners_found) = max_col + col; % 'or col'
-            
-            row = row + neighbour_length;
-            col = col + neighbour_length;
-            total_corners_found = total_corners_found + 1;
-        end   
+    
+    while col <= size(H, 2) 
+        display('in while')
+        display(row)
+        display(col)
+        local_matrix = H(row:row+neighbour_length-1, col:col+neighbour_length-1); % slice part of matrix
+        max_value = max(local_matrix(:));
+        [max_row, max_col] = find(local_matrix == max_value);
+        r(total_corners_found) = max_row + (row-1); % to account for the fact that you took a slice, you need to add 'row'
+        c(total_corners_found) = max_col + (col-1); % 'or col'
+
+        % move the filter
+        if col == (size(H, 2) - neighbour_length + 1) % if we're at the end of the matrix (horizontally)
+            display('at the end of a colum')
+            col = 1; % move your filter to the start of the matrix
+            row = row + neighbour_length; % and move the filter down, to the next part
+        elseif row == (size(H, 1) - neighbour_length + 1)
+            display('done')
+            break % then you've had all parts of your matrix
+        else
+            display('moving to the right')
+            col = col + neighbour_length; % move the filter to the next part, but stay at the same row
+        end 
+    end
 end
