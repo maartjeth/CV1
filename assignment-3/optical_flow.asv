@@ -1,0 +1,30 @@
+function [] = optical_flow(im_path)
+    % Algorithm
+    % 1) Divide input images on non-overlapping regions
+    %    each region being 15x15 pixels
+    % 2) For each region compute A, A^T an b; then estimate optical 
+    %    flow as given in equation (20)
+    % 3) Display results with quiver
+    
+    im = imread(im_path);
+    %im = rgb2gray(im);
+    region_size = 15;
+    regions = get_regions(im, region_size);
+    regions(1)
+    %[A, b] = lucas_kanade(im, region_size);
+end
+
+function [regions] = get_regions(im, region_size)
+
+    size_rows = floor(size(im, 1) / region_size) * region_size;
+    size_cols = floor(size(im, 2) / region_size) * region_size;
+    parts = zeros(region_size, 1);
+    for i=1:region_size
+        parts(i) = region_size;
+    end
+    
+ 
+        
+    regions = mat2cell(im(1:size_rows, 1:size_cols), parts, parts);
+    regions(1)
+end
