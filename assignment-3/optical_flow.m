@@ -10,8 +10,7 @@ function [] = optical_flow(im_path)
     %im = rgb2gray(im);
     region_size = 15;
     regions = get_regions(im, region_size);
-    regions(1)
-    %[A, b] = lucas_kanade(im, region_size);
+    [A, b] = lucas_kanade(regions);
 end
 
 function [regions] = get_regions(im, region_size)
@@ -31,4 +30,13 @@ function [regions] = get_regions(im, region_size)
     % note that I deleted part of the image, to make this fit, not so neat
     regions = mat2cell(im(1:size_rows*region_size, 1:size_cols*region_size), parts_rows, parts_cols);
     regions(1)
+end
+
+function [A, b] = lucas_kanade(regions)
+    % get Ix --> same as before
+    % get Iy --> same as before
+    % get It --> what is that?? where's the t component in the image?
+    for i=1:size(regions, 1)
+        regions(i)
+    end
 end

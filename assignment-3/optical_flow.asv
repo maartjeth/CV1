@@ -10,21 +10,31 @@ function [] = optical_flow(im_path)
     %im = rgb2gray(im);
     region_size = 15;
     regions = get_regions(im, region_size);
-    regions(1)
-    %[A, b] = lucas_kanade(im, region_size);
+    [A, b] = lucas_kanade(regions);
 end
 
 function [regions] = get_regions(im, region_size)
-
-    size_rows = floor(size(im, 1) / region_size) * region_size;
-    size_cols = floor(size(im, 2) / region_size) * region_size;
-    parts = zeros(region_size, 1);
-    for i=1:region_size
-        parts(i) = region_size;
+    size_rows = floor(size(im, 1) / region_size);
+    size_cols = floor(size(im, 2) / region_size);
+    parts_rows = zeros(region_size, 1);
+    parts_cols = zeros(region_size, 1);
+    
+    for i=1:size_rows
+        parts_rows(i) = region_size;
     end
     
- 
-        
-    regions = mat2cell(im(1:size_rows, 1:size_cols), parts, parts);
+    for i=1:size_cols
+        parts_cols(i) = region_size;
+    end
+    
+    % note that I deleted part of the image, to make this fit, not so neat
+    regions = mat2cell(im(1:size_rows*region_size, 1:size_cols*region_size), parts_rows, parts_cols);
     regions(1)
+end
+
+function [A, b] = lucas_kanade(regions)
+
+    for i=1:size(regions, 1)
+        regions(i)
+    end
 end
