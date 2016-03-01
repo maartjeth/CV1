@@ -1,4 +1,4 @@
-function [] = optical_flow(im_path)
+function [] = optical_flow(im_path1, im_path2)
     % Algorithm
     % 1) Divide input images on non-overlapping regions
     %    each region being 15x15 pixels
@@ -6,11 +6,16 @@ function [] = optical_flow(im_path)
     %    flow as given in equation (20)
     % 3) Display results with quiver
     
-    im = imread(im_path);
+    im1 = imread(im_path1);
+    im2 = imread(im_path2);
     %im = rgb2gray(im);
     region_size = 15;
-    regions = get_regions(im, region_size);
-    [A, b] = lucas_kanade(regions);
+    regions1 = get_regions(im1, region_size);
+    regions2 = get_regions(im2, region_size);
+    
+    sigma = 3;
+    kernel_length = 11;
+    [A, b] = lucas_kanade(regions1, regions2, sigma, kernel_length);
 end
 
 function [regions] = get_regions(im, region_size)
@@ -29,12 +34,28 @@ function [regions] = get_regions(im, region_size)
     
     % note that I deleted part of the image, to make this fit, not so neat
     regions = mat2cell(im(1:size_rows*region_size, 1:size_cols*region_size), parts_rows, parts_cols);
-    regions(1)
 end
 
-function [A, b] = lucas_kanade(regions)
+function [A, b] = lucas_kanade(regions1, regions2, sigma, kernel_length)
 
-    for i=1:size(regions, 1)
-        regions(i)
+    % get Ix and Iy for all pixels in the region and therefor A --> we use image 1 for this
+    filter_x = gaussian(sigma, kernel_length);
+    filter_y = gaussian(sigma, kernel_length)';
+    
+    A = zeros(size(regions1, 1), size(regions1, 1), 2, size(regions1, 2)); % you want 15 rows for all q values, 2 columns for Ix and Iy and a third dimension to store this for all regions
+    
+    for i=1:size(regions1, 1)  
+        region = cell2mat(regions1(i)); % get back from cell to matrix
+        if size(region, 1) ~= 0 % this shouldn't need to be checked, just added it to be able to go on; need to have a look to the regions again
+            Ix = gaussianDer3(double(region), filter_x, sigma, 1, 'same'); % horizontal edge filter
+            Iy = gaussianDer3(double(region), filter_y, sigma, 2, 'same'); % vertical edge filter
+        end
+        
+        A(:, :, 1, i) = Ix; % store Ix in all rows of the first column, in dim i
+        A(:, :, 2, i) = Iy; % store Iy in all rows the second column, in dim i            
     end
+
+    % get It
+    It = regions
 end
+
