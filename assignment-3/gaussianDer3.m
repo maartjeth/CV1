@@ -2,7 +2,7 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
-function [imOut, Gd] = gaussianDer2(image_path, G, sigma, dir, conv_option)
+function [imOut, Gd] = gaussianDer3(region, G, sigma, dir, conv_option)
     %set default conv2 shape to valid
     if nargin < 5
         conv_option = 'valid';
@@ -19,11 +19,8 @@ function [imOut, Gd] = gaussianDer2(image_path, G, sigma, dir, conv_option)
         y = ((1:size(G,1)) - ceil(size(G,1)/2))';
         Gd = (-y / sigma^2 .* G);  
     end
-    % load image
-    im = imread(image_path);
-    im = rgb2gray(im);
     
     % apply filter and renormalize image
-    imOut = conv2(double(im), double(Gd), conv_option);
+    imOut = conv2(region, double(Gd), conv_option);
     imOut = ( imOut - min(min(imOut))) / (max(max(imOut)) - min(min(imOut)));
 end
