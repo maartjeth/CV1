@@ -10,13 +10,38 @@ function [] = optical_flow(im_path1, im_path2)
     im2 = imread(im_path2);
     %im = rgb2gray(im);
     region_size = 15;
-    regions1 = get_regions(im1, region_size);
-    regions2 = get_regions(im2, region_size);
+    %regions1 = get_regions(im1, region_size);
+    %regions2 = get_regions(im2, region_size);
     
     sigma = 3;
     kernel_length = 11;
-    [A, b] = lucas_kanade(regions1, regions2, sigma, kernel_length);
+    %[A, b] = lucas_kanade(regions1, regions2, sigma, kernel_length);
+    %[v] = getting_optical_flow(A, b);
+    
+    [v] = [1];
+    
+    display_results(v, im1);
 end
+
+%function [r, c] = get_regions2(im, region_size, threshold) 
+%    side1 = floor(region_size) / 2;
+%    side2 = ceil(region_size) / 2;
+%    num_regions = size(im) / region_size;
+%    regions = zeros( region_size, region_size, num_regions);
+%    for row = 1:size(im, 1)
+%        for col = 1:size(im, 2)
+%            if H(row, col) >= threshold
+%                rmin = max(1, row - side1);
+%                cmin = max(1, col - side1);
+%                rmax = min(size(im, 1), row + side2);
+%                cmax = min(size(im, 2), col + side2);
+%
+%                window = im(rmin:rmax, cmin:cmax);
+%                regions(:, :, 
+%            end
+%        end
+%   end
+%end
 
 function [regions] = get_regions(im, region_size)
     size_rows = floor(size(im, 1) / region_size);
@@ -55,10 +80,26 @@ function [A, b] = lucas_kanade(regions1, regions2, sigma, kernel_length)
             It = region2 - region1;
         end
         
-        A(:, :, 1, i) = Ix; % store Ix in all rows of the first column, in dim i
+        A(:, :, 1, i) = Ix; % store Ix in all rows of the first column, in dim i NOTE: Is this the kind of dimension Ix and Iy should have after all, looking at the assignment?
         A(:, :, 2, i) = Iy; % store Iy in all rows the second column, in dim i  
         
         b(:, :, i) = It;           
     end    
 end
 
+function [v] = getting_optical_flow(A, b)
+    % so this doesn't work yet, as we can't take the inverse of A just like
+    % that. Need to think of the properties A has before continuing
+    v = inv(A.'.*A) .* A.' .* b;
+end
+
+function [] = display_results(v, im)
+
+    x = 1:size(im, 1);
+    y = 1:size(im, 2);  
+
+    figure, imshow(im);
+    hold on
+    quiver(x, y, v[1], v[2]);
+    hold off 
+end
