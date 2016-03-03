@@ -68,7 +68,7 @@ function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
     %% think it should be xy in each case
     A = conv2(Ix.^2, filter_x, 'same');
     %B = conv2(Ix, filter_x, 'same') .* conv2(Iy, filter_y, 'same');
-    B = conv2(Ix.*Iy, filter_xy, 'same');
+    B = conv2(Iy.*Ix, filter_xy, 'same');
     C = conv2(Iy.^2, filter_y, 'same'); 
     
     %size(A)

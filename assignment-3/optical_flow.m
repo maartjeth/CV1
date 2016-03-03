@@ -1,4 +1,6 @@
-function [] = optical_flow(im_path1, im_path2)
+function [] = optical_flow(im_path1, im_path2, sigma, kernel_length)
+
+    close all
     % Algorithm
     % 1) Divide input images on non-overlapping regions
     %    each region being 15x15 pixels
@@ -10,96 +12,69 @@ function [] = optical_flow(im_path1, im_path2)
     im2 = imread(im_path2);
     %im = rgb2gray(im);
     region_size = 15;
-    %regions1 = get_regions(im1, region_size);
-    %regions2 = get_regions(im2, region_size);
     
-    sigma = 3;
-    kernel_length = 11;
-    %[A, b] = lucas_kanade(regions1, regions2, sigma, kernel_length);
-    %[v] = getting_optical_flow(A, b);
-    
-    [v] = [1];
-    
-    display_results(v, im1);
-end
-
-%function [r, c] = get_regions2(im, region_size, threshold) 
-%    side1 = floor(region_size) / 2;
-%    side2 = ceil(region_size) / 2;
-%    num_regions = size(im) / region_size;
-%    regions = zeros( region_size, region_size, num_regions);
-%    for row = 1:size(im, 1)
-%        for col = 1:size(im, 2)
-%            if H(row, col) >= threshold
-%                rmin = max(1, row - side1);
-%                cmin = max(1, col - side1);
-%                rmax = min(size(im, 1), row + side2);
-%                cmax = min(size(im, 2), col + side2);
-%
-%                window = im(rmin:rmax, cmin:cmax);
-%                regions(:, :, 
-%            end
-%        end
-%   end
-%end
-
-function [regions] = get_regions(im, region_size)
-    size_rows = floor(size(im, 1) / region_size);
-    size_cols = floor(size(im, 2) / region_size);
-    parts_rows = zeros(region_size, 1);
-    parts_cols = zeros(region_size, 1);
-    
-    for i=1:size_rows
-        parts_rows(i) = region_size;
-    end
-    
-    for i=1:size_cols
-        parts_cols(i) = region_size;
-    end
-    
-    % note that I deleted part of the image, to make this fit, not so neat
-    regions = mat2cell(im(1:size_rows*region_size, 1:size_cols*region_size), parts_rows, parts_cols);
-end
-
-function [A, b] = lucas_kanade(regions1, regions2, sigma, kernel_length)
-
-    % get Ix and Iy for all pixels in the region and therefor A --> we use image 1 for this
-    % also get It and therfor b
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
+    Ix = gaussianDer2(im_path1, filter_x, sigma, 1, 'same');
+    Iy = gaussianDer2(im_path1, filter_y, sigma, 2, 'same');
+    It = double(im2) - double(im1);
+    It = sum(It, 3);
     
-    A = zeros(size(regions1, 1), size(regions1, 1), 2, size(regions1, 2)); % you want 15 rows for all q values, 2 columns for Ix and Iy and a third dimension to store this for all regions
-    b = zeros(size(regions1, 1), size(regions1, 2), size(regions1, 2));
+    regions_x = get_regions(Ix, region_size); % returns cell arrays for every region in I
+    regions_y = get_regions(Iy, region_size);
+    regions_t = get_regions(It, region_size);
+
+    V = arrayfun(@(x,y,t) lucas_kanade(x,y,t), regions_x, regions_y, regions_t, 'UniformOutput', false);
     
-    for i=1:size(regions1, 1)  
-        region1 = cell2mat(regions1(i)); % get back from cell to matrix
-        region2 = cell2mat(regions2(i));
-        if size(region1, 1) ~= 0 % this shouldn't need to be checked, just added it to be able to go on; need to have a look to the regions again
-            Ix = gaussianDer3(double(region1), filter_x, sigma, 1, 'same'); % horizontal edge filter
-            Iy = gaussianDer3(double(region1), filter_y, sigma, 2, 'same'); % vertical edge filter
-            It = region2 - region1;
-        end
-        
-        A(:, :, 1, i) = Ix; % store Ix in all rows of the first column, in dim i NOTE: Is this the kind of dimension Ix and Iy should have after all, looking at the assignment?
-        A(:, :, 2, i) = Iy; % store Iy in all rows the second column, in dim i  
-        
-        b(:, :, i) = It;           
-    end    
+    display_results(im1, V, region_size);
+    
+    remainder_row = mod(size(im2, 1), region_size);
+    remainder_col = mod(size(im2, 2), region_size);
+    im2 = im2((floor(remainder_row / 2)+1):(size(im2,1) - ceil(remainder_row / 2)), ...
+        (floor(remainder_col / 2)+1):(size(im2,2) - ceil(remainder_col / 2)), :);
+    figure, imshow(im2)
 end
 
-function [v] = getting_optical_flow(A, b)
-    % so this doesn't work yet, as we can't take the inverse of A just like
-    % that. Need to think of the properties A has before continuing
-    v = inv(A.'.*A) .* A.' .* b;
+% WORKS
+function [regions] = get_regions(I, region_size)    
+    remainder_row = mod(size(I, 1), region_size);
+    remainder_col = mod(size(I, 2), region_size);
+    I = I((floor(remainder_row / 2)+1):(size(I,1) - ceil(remainder_row / 2)), ...
+        (floor(remainder_col / 2)+1):(size(I,2) - ceil(remainder_col / 2)));
+    
+    parts_rows = region_size * ones(int16(size(I, 1)) / region_size, 1);
+    parts_cols = region_size * ones(int16(size(I, 2)) / region_size, 1);
+    
+    regions = mat2cell(I, parts_rows, parts_cols);
 end
 
-function [] = display_results(v, im)
+function v = lucas_kanade(region_x, region_y, region_t)
+    mat_x = cell2mat(region_x);
+    mat_y = cell2mat(region_y);
+    mat_t = cell2mat(region_t);
+    
+    A = [mat_x(:), mat_y(:)];
+    b = -mat_t(:);
+    v = pinv(A'*A)*A' * b;
+end
 
-    x = 1:size(im, 1);
-    y = 1:size(im, 2);  
 
+function display_results(im, V, region_size)
+    V = cell2mat(V);
+    Vx = V(1:2:end, :);
+    Vy = V(2:2:end, :);
+
+    remainder_row = mod(size(im, 1), region_size);
+    remainder_col = mod(size(im, 2), region_size);
+    im = im((floor(remainder_row / 2)+1):(size(im,1) - ceil(remainder_row / 2)), ...
+        (floor(remainder_col / 2)+1):(size(im,2) - ceil(remainder_col / 2)), :);
     figure, imshow(im);
     hold on
-    quiver(x, y, v[1], v[2]);
-    hold off 
+    scale_row = floor(region_size / 2)+1:region_size:size(im, 1); % syntax is start:step:end
+    scale_col = floor(region_size / 2)+1:region_size:size(im, 2);
+    region_size
+    size(scale_row)
+    size(Vx)
+    quiver(scale_col, scale_row, Vx, -Vy);
+    hold off
 end
