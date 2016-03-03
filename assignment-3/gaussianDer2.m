@@ -25,5 +25,5 @@ function [imOut, Gd] = gaussianDer2(image_path, G, sigma, dir, conv_option)
     
     % apply filter and renormalize image
     imOut = conv2(double(im), double(Gd), conv_option);
-    imOut = ( imOut - min(min(imOut))) / (max(max(imOut)) - min(min(imOut)));
+    %imOut = ( imOut - min(min(imOut))) / (max(max(imOut)) - min(min(imOut)));
 end
