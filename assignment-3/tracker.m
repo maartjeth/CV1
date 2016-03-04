@@ -1,7 +1,7 @@
 function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_length, threshold, region_size)
 
-    directory = 'pingpongsmall';
-    file_ending = 'jpeg';
+    directory = 'person_toy';
+    file_ending = 'jpg';
     sigma = 3;
     kernel_length = 11;
     k = 0.05;
@@ -20,6 +20,9 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     % detect corners in first image save as interest points
     [r, c] = harris_corner(paths{1}, sigma, kernel_length, k, neighbour_length, threshold, false);
     ip = [r, c];
+    
+    sigma = 1;
+    kernel_length = 3;
 %     im = imread(paths{1});
 %     fig = figure('visible','off');
 %     imshow(im);
@@ -47,7 +50,7 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
         frames(:,:,:,idx) = double(F.cdata) / 255;
         
         % make new interest points
-        ip = ip + V;
+        ip = ip + fliplr(V);
     end
     
     % make final frame

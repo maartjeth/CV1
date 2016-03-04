@@ -21,8 +21,10 @@ function [V] = optical_flow(im_path1, im_path2, sigma, kernel_length, region_siz
     
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
-    Ix = gaussianDer2(im_path1, filter_x, sigma, 1, 'same');
-    Iy = gaussianDer2(im_path1, filter_y, sigma, 2, 'same');
+    
+    
+    Ix = gaussianDer4(im_path1, filter_x, sigma, 1, 'same');
+    Iy = gaussianDer4(im_path1, filter_y, sigma, 2, 'same');
     
     It = (double(im2) - double(im1));
     
@@ -107,6 +109,6 @@ function display_results(im, interest_points, V)
     
     figure, imshow(im);
     hold on
-    quiver(Pcol, Prow, Vrow, Vcol);
+    quiver(Pcol, Prow, Vrow, Vcol, 'AutoScale', 'off');
     hold off
 end

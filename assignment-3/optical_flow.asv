@@ -21,6 +21,9 @@ function [V] = optical_flow(im_path1, im_path2, sigma, kernel_length, region_siz
     
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
+    
+    
+    
     Ix = gaussianDer2(im_path1, filter_x, sigma, 1, 'same');
     Iy = gaussianDer2(im_path1, filter_y, sigma, 2, 'same');
     
@@ -66,19 +69,8 @@ end
 
 function regions = get_regions(I, region_size, interest_points)
 
-    lu_offset = floor((region_size-1)/2);
-    rd_offset = ceil((region_size-1)/2);
-    num_points = size(interest_points, 1);
-    
-    for idx = 1:num_points
-        row = interest_points(idx, 1);
-        col = interest_points(idx, 2);
-        
-        if row-lu_offset < 1 || row+rd_offset > size(I, 1) ||  col-lu_offset < 1 || col+rd_offset > size(I, 2)
-        end
-    end
-    
-    interest_points = ip;
+    lu_offset = int32(floor((region_size-1)/2));
+    rd_offset = int32(ceil((region_size-1)/2));
     
     num_points = size(interest_points, 1);
     regions = zeros(region_size, region_size, num_points);
@@ -118,6 +110,6 @@ function display_results(im, interest_points, V)
     
     figure, imshow(im);
     hold on
-    quiver(Pcol, Prow, Vrow, Vcol);
+    quiver(Pcol, Prow, Vrow, Vcol, 'AutoScale', 'off');
     hold off
 end
