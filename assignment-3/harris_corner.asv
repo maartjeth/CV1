@@ -5,12 +5,17 @@
 % Best setting I figured:
 % k = 0.05
 
-function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold)
+function [r, c] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold, verbose)
     
+    close all
     % steps:
     % 1) get_i
     % 2) get_elem_q
     % 3) construct_h
+    
+    if nargin < 7
+        verbose ´= true;
+    end
     
     % function copied from last week:    
     filter_x = gaussian(sigma, kernel_length);
@@ -24,7 +29,7 @@ function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, 
     H = construct_h(A, B, C, k);
     %size(H)
     %display('getting corners')
-    [r, c] = get_corners(H, neighbour_length, threshold);
+    [r, c] = get_corners2(H, neighbour_length, threshold);
     %display('r')
     %
     %display('c')
@@ -67,7 +72,7 @@ function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
     %% think it should be xy in each case
     A = conv2(Ix.^2, filter_x, 'same');
     %B = conv2(Ix, filter_x, 'same') .* conv2(Iy, filter_y, 'same');
-    B = conv2(Ix.*Iy, filter_xy, 'same');
+    B = conv2(Iy.*Ix, filter_xy, 'same');
     C = conv2(Iy.^2, filter_y, 'same'); 
     
     %size(A)
@@ -79,22 +84,29 @@ function [H] = construct_h(A, B, C, k)
     H = (A.*C-B.^2) - k*(A+C).^2;
     figure, imshow(H*255); % had to normalise this to get results --> deleting it gives black picture
     size(H)
+    max(max(H))
 end
 
 function [r, c] = get_corners2(H, neighbour_length, threshold)   
+    M = zeros(size(H));
     for row = 1:size(H, 1)
         for col = 1:size(H, 2)
-            rmin = max(1, row - neighbour_length);
-            cmin = max(1, col - neighbour_length);
-            rmax = min(size(H, 1), row + neighbour_length);
-            cmax = min(size(H, 2), col + neighbour_length);
-            
-            window = H(rmin:rmax, cmin,cmax);
-            
-            if H(row, col) > threshold and max(max(window)) == H(row, col) 
+            if H(row, col) >= threshold
+                rmin = max(1, row - neighbour_length);
+                cmin = max(1, col - neighbour_length);
+                rmax = min(size(H, 1), row + neighbour_length);
+                cmax = min(size(H, 2), col + neighbour_length);
+
+                window = H(rmin:rmax, cmin:cmax);
+
+                if max(max(window)) == H(row, col) 
+                    M(row,col) = 255;
+                end
             end
         end
     end
+    figure, imshow(M)
+    [r, c] = find(M)
 end
 
 % NOTE: I guess there's still something wrong in this function as it
@@ -145,8 +157,9 @@ end
 
 function [] = plot_corners(im_path, r, c)    
     im = imread(im_path);
-    imshow(im);
-    %hold on
-    figure, scatter(r, c);
+    figure, imshow(im);
+    hold on
+    %% had to switch dimensions here. not totally clear why atm
+    scatter(c, r); 
     %hold off
 end

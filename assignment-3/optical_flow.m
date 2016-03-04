@@ -1,4 +1,4 @@
-function [] = optical_flow(im_path1, im_path2, sigma, kernel_length, interest_points)
+function [V] = optical_flow(im_path1, im_path2, sigma, kernel_length, region_size, interest_points, verbose)
 
     close all
     % Algorithm
@@ -7,19 +7,17 @@ function [] = optical_flow(im_path1, im_path2, sigma, kernel_length, interest_po
     % 2) For each region compute A, A^T an b; then estimate optical 
     %    flow as given in equation (20)
     % 3) Display results with quiver
-    
-
-    
+        
     im1 = imread(im_path1);
     im2 = imread(im_path2);
-
-    region_size = 15;
     
-    if nargin < 5
+    if nargin < 6
         interest_points = make_grid(im1, region_size);
     end
     
-    
+    if nargin < 7
+        verbose = true;
+    end
     
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
@@ -50,10 +48,10 @@ function [] = optical_flow(im_path1, im_path2, sigma, kernel_length, interest_po
     end
     
     V = squeeze(V)';
-    
-    display_results(im1, interest_points, V);
-    
-    figure, imshow(im2);
+    if verbose
+        display_results(im1, interest_points, V);
+        figure, imshow(im2);
+    end
 end
 
 function res = make_grid(im, region_size)
@@ -67,15 +65,20 @@ function res = make_grid(im, region_size)
 end
 
 function regions = get_regions(I, region_size, interest_points)
+
+    lu_offset = int32(floor((region_size-1)/2));
+    rd_offset = int32(ceil((region_size-1)/2));
+    
     num_points = size(interest_points, 1);
     regions = zeros(region_size, region_size, num_points);
-    lu_offset = floor((region_size-1)/2);
-    rd_offset = ceil((region_size-1)/2);
     
     for idx = 1:num_points
         row = interest_points(idx, 1);
         col = interest_points(idx, 2);
-        regions(:,:,idx) = I(row-lu_offset:row+rd_offset, col-lu_offset:col+rd_offset);
+        
+        if row-lu_offset > 1 && row+rd_offset < size(I, 1) &&  col-lu_offset > 1 && col+rd_offset < size(I, 2)
+            regions(:,:,idx) = I(row-lu_offset:row+rd_offset, col-lu_offset:col+rd_offset);
+        end
     end
     
 end

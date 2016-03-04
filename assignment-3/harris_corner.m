@@ -5,7 +5,7 @@
 % Best setting I figured:
 % k = 0.05
 
-function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold)
+function [r, c] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold, verbose)
     
     close all
     % steps:
@@ -13,15 +13,19 @@ function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, 
     % 2) get_elem_q
     % 3) construct_h
     
+    if nargin < 7
+        verbose = true;
+    end
+    
     % function copied from last week:    
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
     
-    display('getting i')
+    %display('getting i')
     [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y);
-    display('getting a b c')
+    %display('getting a b c')
     [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y);
-    display('getting h')
+    %display('getting h')
     H = construct_h(A, B, C, k);
     %size(H)
     %display('getting corners')
@@ -31,8 +35,9 @@ function [] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, 
     %display('c')
     %
     
-    plot_corners(im_path, r, c);
-    
+    if verbose
+        plot_corners(im_path, r, c);
+    end
 end
 
 function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
@@ -42,8 +47,10 @@ function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
     % function copied from last week, but slightly modified to get the two different directions  
     % use same to get the same dimensions
     Ix = gaussianDer2(im_path, filter_x, sigma, 1, 'same'); % horizontal edge filter
-    Iy = gaussianDer2(im_path, filter_y, sigma, 2, 'same'); % vertical edge filter
+    Ix = ( Ix - min(min(Ix))) / (max(max(Ix)) - min(min(Ix)));
     
+    Iy = gaussianDer2(im_path, filter_y, sigma, 2, 'same'); % vertical edge filter
+    Iy = ( Iy - min(min(Iy))) / (max(max(Iy)) - min(min(Iy)));
     % show the images (part of the assignment, don't delete)
     % figure, imshow(Ix);
     % figure, imshow(Iy);
@@ -78,9 +85,9 @@ end
 
 function [H] = construct_h(A, B, C, k)
     H = (A.*C-B.^2) - k*(A+C).^2;
-    figure, imshow(H*255); % had to normalise this to get results --> deleting it gives black picture
-    size(H)
-    max(max(H))
+    %figure, imshow(H*255); % had to normalise this to get results --> deleting it gives black picture
+    %size(H)
+    %max(max(H))
 end
 
 function [r, c] = get_corners2(H, neighbour_length, threshold)   
@@ -101,8 +108,8 @@ function [r, c] = get_corners2(H, neighbour_length, threshold)
             end
         end
     end
-    figure, imshow(M)
-    [r, c] = find(M)
+    %figure, imshow(M)
+    [r, c] = find(M);
 end
 
 % NOTE: I guess there's still something wrong in this function as it
@@ -157,5 +164,5 @@ function [] = plot_corners(im_path, r, c)
     hold on
     %% had to switch dimensions here. not totally clear why atm
     scatter(c, r); 
-    %hold off
+    hold off
 end
