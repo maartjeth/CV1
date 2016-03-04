@@ -1,4 +1,4 @@
-function [] = optical_flow(im_path1, im_path2, sigma, kernel_length)
+function [] = optical_flow(im_path1, im_path2, sigma, kernel_length, interest_points)
 
     close all
     % Algorithm
@@ -8,93 +8,103 @@ function [] = optical_flow(im_path1, im_path2, sigma, kernel_length)
     %    flow as given in equation (20)
     % 3) Display results with quiver
     
+
+    
     im1 = imread(im_path1);
     im2 = imread(im_path2);
 
     region_size = 15;
+    
+    if nargin < 5
+        interest_points = make_grid(im1, region_size);
+    end
+    
+    
     
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
     Ix = gaussianDer2(im_path1, filter_x, sigma, 1, 'same');
     Iy = gaussianDer2(im_path1, filter_y, sigma, 2, 'same');
     
-    %Ix, Iy = gradient(double(im1));
-    
-    
-    filter_x = [-1, 1];
-    filter_y = [-1; 1];
-    
-    im1 = rgb2gray(im1);
-    im2 = rgb2gray(im2);
-    
-    Ix = conv2(double(im1), double(filter_x), 'same');
-    Iy = conv2(double(im1), double(filter_y), 'same');
-    
-    
-    %figure, imshow(Ix)
-    %figure, imshow(Iy)
     It = (double(im2) - double(im1));
     
     It = sum(It, 3);
-    
-    regions_x = get_regions(Ix, region_size); % returns cell arrays for every region in I
-    regions_y = get_regions(Iy, region_size);
-    regions_t = get_regions(It, region_size);
+    regions_x = get_regions(Ix, region_size, interest_points); % returns cell arrays for every region in I
+    regions_y = get_regions(Iy, region_size, interest_points);
+    regions_t = get_regions(It, region_size, interest_points);
 
-    V = arrayfun(@(x,y,t) lucas_kanade(x,y,t), regions_x, regions_y, regions_t, 'UniformOutput', false);
-    display_results(im1, V, region_size);
+    flat_x = reshape(regions_x, size(regions_x, 1)*size(regions_x, 2), 1, size(regions_x, 3));
+    flat_y = reshape(regions_y, size(regions_y, 1)*size(regions_y, 2), 1, size(regions_y, 3));
+    flat_t = reshape(regions_t, size(regions_t, 1)*size(regions_t, 2), 1, size(regions_t, 3));
     
-    remainder_row = mod(size(im2, 1), region_size);
-    remainder_col = mod(size(im2, 2), region_size);
-    im2 = im2((floor(remainder_row / 2)+1):(size(im2,1) - ceil(remainder_row / 2)), ...
-        (floor(remainder_col / 2)+1):(size(im2,2) - ceil(remainder_col / 2)), :);
-    figure, imshow(im2)
+    A = double(cat(2, flat_x, flat_y));
+    b = -flat_t;
+    At = double(permute(A, [2,1,3]));
+    
+    V = zeros(2, 1, size(interest_points, 3));
+    
+    for idx = size(A, 3)
+        r = At(:,:,idx) * A(:,:,idx);
+        q = (At(:,:,idx) * b(:,:,idx));
+        V(:,:,idx) = pinv(At(:,:,idx) * A(:,:,idx)) * (At(:,:,idx) * b(:,:,idx));
+    end
+    pinv(r)
+    max(max(V))
+    V = squeeze(V)';
+    
+    display_results(im1, interest_points, V);
+    
+    figure, imshow(im2);
 end
 
-% WORKS
-function [regions] = get_regions(I, region_size)    
-    remainder_row = mod(size(I, 1), region_size);
-    remainder_col = mod(size(I, 2), region_size);
-    I = I((floor(remainder_row / 2)+1):(size(I,1) - ceil(remainder_row / 2)), ...
-        (floor(remainder_col / 2)+1):(size(I,2) - ceil(remainder_col / 2)));
+function res = make_grid(im, region_size)
     
-    parts_rows = region_size * ones(int16(size(I, 1)) / region_size, 1);
-    parts_cols = region_size * ones(int16(size(I, 2)) / region_size, 1);
-    
-    regions = mat2cell(I, parts_rows, parts_cols);
-end
-
-function v = lucas_kanade(region_x, region_y, region_t)
-    % checked: sizes are all fine
-    
-    mat_x = cell2mat(region_x);
-    mat_y = cell2mat(region_y);
-    mat_t = cell2mat(region_t);
-        
-    
-    A = [mat_x(:), mat_y(:)];
-    b = -mat_t(:);
-    v = pinv(A'*A)*A' * b;
-end
-
-
-function display_results(im, V, region_size)
-    % guess this one works too
-    V = cell2mat(V);
-    Vx = V(1:2:end, :);
-    Vy = V(2:2:end, :);
-
     remainder_row = mod(size(im, 1), region_size);
     remainder_col = mod(size(im, 2), region_size);
-    im = im((floor(remainder_row / 2)+1):(size(im,1) - ceil(remainder_row / 2)), ...
-        (floor(remainder_col / 2)+1):(size(im,2) - ceil(remainder_col / 2)), :);
+    rows = (floor(remainder_row / 2)+1+floor(region_size/2)):region_size:(size(im,1) - ceil(remainder_row / 2) - floor(region_size/2));
+    cols = (floor(remainder_col / 2)+1+floor(region_size/2)):region_size:(size(im,2) - ceil(remainder_col / 2) - floor(region_size/2));
+    [rows, cols] = meshgrid(rows, cols);
+    res = [rows(:), cols(:)];
+end
+
+function regions = get_regions(I, region_size, interest_points)
+    num_points = size(interest_points, 1);
+    regions = zeros(region_size, region_size, num_points);
+    lu_offset = floor((region_size-1)/2);
+    rd_offset = ceil((region_size-1)/2);
+    
+    for idx = 1:num_points
+        row = interest_points(idx, 1);
+        col = interest_points(idx, 2);
+        regions(:,:,idx) = I(row-lu_offset:row+rd_offset, col-lu_offset:col+rd_offset);
+    end
+    
+end
+
+% function v = lucas_kanade(region_x, region_y, region_t)
+%     % checked: sizes are all fine
+%     
+%     mat_x = cell2mat(region_x);
+%     mat_y = cell2mat(region_y);
+%     mat_t = cell2mat(region_t);
+%         
+%     
+%     A = [mat_x(:), mat_y(:)];
+%     b = -mat_t(:);
+%     v = pinv(A'*A)*A' * b;
+% end
+
+
+function display_results(im, interest_points, V)
+
+    Vrow = V(:,1);
+    Vcol = V(:,2);
+    
+    Prow = interest_points(:, 1);
+    Pcol = interest_points(:, 2);
+    
     figure, imshow(im);
     hold on
-    scale_row = floor(region_size / 2)+1:region_size:size(im, 1); % syntax is start:step:end
-    scale_col = floor(region_size / 2)+1:region_size:size(im, 2);
-    %region_size
-    size(scale_col)
-    %size(Vx)
-    quiver(scale_col, scale_row, -Vx, -Vy);
+    quiver(Pcol, Prow, Vrow, Vcol);
     hold off
 end
