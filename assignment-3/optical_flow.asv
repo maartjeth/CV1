@@ -22,10 +22,10 @@ function [V] = optical_flow(im_path1, im_path2, sigma, kernel_length, region_siz
     filter_x = gaussian(sigma, kernel_length);
     filter_y = gaussian(sigma, kernel_length)';
     
+    gaussianConv(im_path, sigma_x, sigma_y, kernel_length, conv_option)  
     
-    
-    Ix = gaussianDer2(im_path1, filter_x, sigma, 1, 'same');
-    Iy = gaussianDer2(im_path1, filter_y, sigma, 2, 'same');
+    Ix = gaussianDer4(im_path1, filter_x, sigma, 1, 'same');
+    Iy = gaussianDer4(im_path1, filter_y, sigma, 2, 'same');
     
     It = (double(im2) - double(im1));
     

@@ -1,3 +1,7 @@
+% Computer Vision Assignment 3 Part 3
+% Frederik Harder - 10986847 - frederikharder@gmail.com
+% Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
+
 function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_length, threshold, region_size)
 
     directory = 'person_toy';
@@ -10,7 +14,7 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
 
     region_size = 15;
     
-    % retrive relevant image paths
+    % retrieve relevant image paths
     paths = get_imagepaths(directory, file_ending);
     
     % create structure for storing images
@@ -19,19 +23,8 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     
     % detect corners in first image save as interest points
     [r, c] = harris_corner(paths{1}, sigma, kernel_length, k, neighbour_length, threshold, false);
-    ip = [r, c];
-    
-    sigma = 1;
-    kernel_length = 3;
-%     im = imread(paths{1});
-%     fig = figure('visible','off');
-%     imshow(im);
-%     hold on
-%     scatter(c, r); 
-%     hold off
-%     F = getframe(fig);
-%     figure, imshow(F.cdata)
-    
+    ip = [r, c];    
+   
     % for each pair of consecutive images compute flow and update interest points (make plot)
     for idx = 1:size(paths,1)-1
         
@@ -46,7 +39,6 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
         hold off
 
         F = getframe(fig);
-
         frames(:,:,:,idx) = double(F.cdata) / 255;
         
         % make new interest points
@@ -62,21 +54,19 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     hold off
     F = getframe(fig);
     frames(:,:,:,end) = double(F.cdata) / 255;
-    % take all plots, make movie
     
+    % take all plots, make movie    
     mov = immovie(frames);
     implay(mov);
     
 end
     
-% put auxiliary functions here
 function paths = get_imagepaths(directory, file_ending)
-
+    % getting all paths to images in the movie
     general_path = strcat(directory, '/*.', file_ending);
     files = dir(general_path);
 
     paths = cell(size(files, 1), 1);
-
     for idx = 1:size(files, 1)
         paths{idx} = strcat(directory, '/', files(idx).name);
     end
