@@ -50,14 +50,15 @@ end
 
 function [H] = construct_h(A, B, C, k)
     H = (A.*C-B.^2) - k*(A+C).^2;
-    %figure, imshow(H*255); % had to normalise this to get results --> deleting it gives black picture
+    %figure, imshow(H*255);
 end
 
 function [r, c] = get_corners(H, neighbour_length, threshold) 
     % look at neighbourhood for each pixel
     M = zeros(size(H));
-    for row = 1:size(H, 1)
-        for col = 1:size(H, 2)
+    for row = 2:(size(H, 1)-5)
+        for col = 2:(size(H, 2)-2)
+            % only examine pixels above threshold
             if H(row, col) >= threshold
                 rmin = max(1, row - neighbour_length);
                 cmin = max(1, col - neighbour_length);
@@ -66,7 +67,7 @@ function [r, c] = get_corners(H, neighbour_length, threshold)
 
                 window = H(rmin:rmax, cmin:cmax);
 
-                %
+                % if pixel is max in neighbourhood, set as corner
                 if max(max(window)) == H(row, col) 
                     M(row,col) = 255;
                 end

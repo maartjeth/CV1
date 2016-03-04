@@ -56,8 +56,8 @@ end
 function [r, c] = get_corners(H, neighbour_length, threshold) 
     % look at neighbourhood for each pixel
     M = zeros(size(H));
-    for row = 1:size(H, 1)
-        for col = 1:size(H, 2)
+    for row = 5:(size(H, 1)-5)  % introduced by fiat!
+        for col = 5:(size(H, 2)-5)
             % only examine pixels above threshold
             if H(row, col) >= threshold
                 rmin = max(1, row - neighbour_length);
