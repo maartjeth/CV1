@@ -16,6 +16,7 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     
     % retrieve relevant image paths
     paths = get_imagepaths(directory, file_ending);
+
     
     % create structure for storing images
     im = imread(paths{1});
