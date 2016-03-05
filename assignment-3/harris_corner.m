@@ -34,8 +34,8 @@ function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
     Iy = gaussianDer2(im_path, filter_y, sigma, 2, 'same'); % vertical edge filter
     Iy = ( Iy - min(min(Iy))) / (max(max(Iy)) - min(min(Iy)));
     % show the images (part of the assignment, don't delete)
-    % figure, imshow(Ix);
-    % figure, imshow(Iy);
+    %figure, imshow(Ix);
+    %figure, imshow(Iy);
  end
 
 function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
@@ -50,7 +50,7 @@ end
 
 function [H] = construct_h(A, B, C, k)
     H = (A.*C-B.^2) - k*(A+C).^2;
-    %figure, imshow(H*255);
+    figure, imshow(H*255);
 end
 
 function [r, c] = get_corners(H, neighbour_length, threshold) 
@@ -82,6 +82,6 @@ function [] = plot_corners(im_path, r, c)
     im = imread(im_path);
     figure, imshow(im);
     hold on
-    scatter(c, r); 
+    scatter(c, r, 'filled', 'blue'); 
     hold off
 end

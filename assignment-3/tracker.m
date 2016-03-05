@@ -4,8 +4,8 @@
 
 function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_length, threshold, region_size)
 
-    directory = 'person_toy';
-    file_ending = 'jpg';
+    directory = 'pingpong';
+    file_ending = 'jpeg';
     sigma = 3;
     kernel_length = 11;
     k = 0.05;
@@ -16,7 +16,7 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     
     % retrieve relevant image paths
     paths = get_imagepaths(directory, file_ending);
-
+    
     
     % create structure for storing images
     im = imread(paths{1});
@@ -35,7 +35,7 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
         fig = figure('visible','off');
         imshow(im);
         hold on
-        scatter(ip(:,2), ip(:,1));
+        scatter(ip(:,2), ip(:,1), 'filled');
         quiver(ip(:,2), ip(:,1), V(:,1), V(:,2), 'AutoScale', 'off');
         hold off
 
@@ -51,7 +51,7 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     fig = figure('visible','off');
     imshow(im);
     hold on
-    scatter(ip(:,2), ip(:,1));
+    scatter(ip(:,2), ip(:,1), 'filled');
     hold off
     F = getframe(fig);
     frames(:,:,:,end) = double(F.cdata) / 255;

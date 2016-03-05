@@ -25,6 +25,6 @@ function [imOut, Gd] = gaussianDer2(image_path, G, sigma, dir, conv_option)
     im = imread(image_path);
     im = rgb2gray(im);
     
-    % apply filter and renormalize image
+    % apply filter
     imOut = conv2(double(im), double(Gd), conv_option);
 end

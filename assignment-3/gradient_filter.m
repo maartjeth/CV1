@@ -4,7 +4,7 @@
 
 function [imOut] = gradient_filter(image_path, dir, conv_option)
     
-    %set default conv2 shape to valid
+    % set default conv2 shape to valid
     if nargin < 5
         conv_option = 'same';
     end
@@ -21,6 +21,6 @@ function [imOut] = gradient_filter(image_path, dir, conv_option)
     im = imread(image_path);
     im = rgb2gray(im);
     
-    % apply filter and renormalize image
+    % apply filter
     imOut = conv2(double(im), double(Gd), conv_option);
 end

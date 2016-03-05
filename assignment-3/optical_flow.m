@@ -89,7 +89,7 @@ function display_results(im, interest_points, V)
     
     figure, imshow(im);
     hold on
-    %quiver(Pcol, Prow, Vrow, Vcol, 'AutoScale', 'off');
-    quiver(Pcol, Prow, Vrow, Vcol);
+    quiver(Pcol, Prow, Vrow, Vcol, 'AutoScale', 'off');
+    %quiver(Pcol, Prow, Vrow, Vcol);
     hold off
 end
