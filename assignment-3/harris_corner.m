@@ -2,9 +2,6 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
-% Best setting I figured:
-% k = 0.05
-
 function [r, c, H] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold, verbose)
         
     if nargin < 7
@@ -54,8 +51,8 @@ end
 function [r, c] = get_corners(H, neighbour_length, threshold) 
     % look at neighbourhood for each pixel
     M = zeros(size(H));
-    for row = 5:(size(H, 1)-5)  % introduced by fiat!
-        for col = 5:(size(H, 2)-5)
+    for row = floor(neighbour_length/2):(size(H, 1)-floor(neighbour_length/2))
+        for col = floor(neighbour_length/2):(size(H, 2)-floor(neighbour_length/2))
             % only examine pixels above threshold
             if H(row, col) >= threshold
                 rmin = max(1, row - neighbour_length);

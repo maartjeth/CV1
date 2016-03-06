@@ -20,7 +20,7 @@ im_path = 'pingpong/0000.jpeg';
 region_size = 15;
 
 im_path1 = 'sphere1.ppm';
-im_path2 = 'sphere2.ppm';
+im_path2 = 'sphere2.ppm'; 
 %optical_flow(im_path1, im_path2, region_size);
 
 im_path1 = 'synth1.pgm';
