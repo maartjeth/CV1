@@ -5,10 +5,8 @@
 % Best setting I figured:
 % k = 0.05
 
-function [r, c] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold, verbose)
-    
-    close all
-    
+function [r, c, H] = harris_corner(im_path, sigma, kernel_length, k, neighbour_length, threshold, verbose)
+        
     if nargin < 7
         verbose = true;
     end    
@@ -22,6 +20,9 @@ function [r, c] = harris_corner(im_path, sigma, kernel_length, k, neighbour_leng
     [r, c] = get_corners(H, neighbour_length, threshold);
     
     if verbose
+        figure, imshow(Ix);
+        figure, imshow(Iy);
+        figure, imshow(H*255);
         plot_corners(im_path, r, c);
     end
 end
@@ -34,8 +35,6 @@ function [Ix, Iy] = get_i(im_path, sigma, filter_x, filter_y)
     Iy = gaussianDer2(im_path, filter_y, sigma, 2, 'same'); % vertical edge filter
     Iy = ( Iy - min(min(Iy))) / (max(max(Iy)) - min(min(Iy)));
     % show the images (part of the assignment, don't delete)
-    %figure, imshow(Ix);
-    %figure, imshow(Iy);
  end
 
 function [A, B, C] = get_elem_q(Ix, Iy, filter_x, filter_y)
@@ -50,7 +49,6 @@ end
 
 function [H] = construct_h(A, B, C, k)
     H = (A.*C-B.^2) - k*(A+C).^2;
-    figure, imshow(H*255);
 end
 
 function [r, c] = get_corners(H, neighbour_length, threshold) 
@@ -74,7 +72,6 @@ function [r, c] = get_corners(H, neighbour_length, threshold)
             end
         end
     end
-    %figure, imshow(M)
     [r, c] = find(M);
 end
 
@@ -82,6 +79,6 @@ function [] = plot_corners(im_path, r, c)
     im = imread(im_path);
     figure, imshow(im);
     hold on
-    scatter(c, r, 'filled', 'blue'); 
+    scatter(c, r, 'cyan', '+'); 
     hold off
 end

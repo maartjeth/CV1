@@ -2,17 +2,11 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
-function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_length, threshold, region_size)
+function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_length, threshold, region_size, out_path)
 
-    directory = 'pingpong';
-    file_ending = 'jpeg';
-    sigma = 3;
-    kernel_length = 11;
-    k = 0.05;
-    neighbour_length = 10;
-    threshold = 0.01;
-
-    region_size = 15;
+    if nargin < 9
+        out_path = '';
+    end   
     
     % retrieve relevant image paths
     paths = get_imagepaths(directory, file_ending);
@@ -23,20 +17,20 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     frames = zeros(size(im,1), size(im,2), 3, size(paths, 1));
     
     % detect corners in first image save as interest points
-    [r, c] = harris_corner(paths{1}, sigma, kernel_length, k, neighbour_length, threshold, false);
+    [r, c, ~] = harris_corner(paths{1}, sigma, kernel_length, k, neighbour_length, threshold, false);
     ip = [r, c];    
    
     % for each pair of consecutive images compute flow and update interest points (make plot)
     for idx = 1:size(paths,1)-1
         
-        V = optical_flow(paths{idx}, paths{idx+1}, sigma, kernel_length, region_size, ip, false);
+        V = optical_flow(paths{idx}, paths{idx+1}, region_size, ip, false);
 
         im = imread(paths{idx});
         fig = figure('visible','off');
         imshow(im);
         hold on
-        scatter(ip(:,2), ip(:,1), 'filled');
-        quiver(ip(:,2), ip(:,1), V(:,1), V(:,2), 'AutoScale', 'off');
+        scatter(ip(:,2), ip(:,1), 'cyan', '+');
+        quiver(ip(:,2), ip(:,1), V(:,1), V(:,2), 'AutoScale', 'on', 'Color', 'blue');
         hold off
 
         F = getframe(fig);
@@ -51,15 +45,22 @@ function tracker(directory, file_ending, sigma, kernel_length, k, neighbour_leng
     fig = figure('visible','off');
     imshow(im);
     hold on
-    scatter(ip(:,2), ip(:,1), 'filled');
+    scatter(ip(:,2), ip(:,1), 'cyan', '+');
     hold off
     F = getframe(fig);
     frames(:,:,:,end) = double(F.cdata) / 255;
     
     % take all plots, make movie    
     mov = immovie(frames);
-    implay(mov);
     
+    if strcmp(out_path, '')
+        implay(mov);
+    else
+        writer = VideoWriter(out_path);
+        open(writer);
+        writeVideo(writer, mov);
+        close(writer);
+    end
 end
     
 function paths = get_imagepaths(directory, file_ending)

@@ -19,8 +19,9 @@ function [imOut] = gradient_filter(image_path, dir, conv_option)
     
     % load image
     im = imread(image_path);
-    im = rgb2gray(im);
-    
+    if size(im, 3) == 3
+        im = rgb2gray(im);
+    end
     % apply filter
     imOut = conv2(double(im), double(Gd), conv_option);
 end

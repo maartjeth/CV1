@@ -2,18 +2,18 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
-function [V] = optical_flow(im_path1, im_path2, sigma, kernel_length, region_size, interest_points, verbose)
+function [V] = optical_flow(im_path1, im_path2, region_size, interest_points, verbose)
         
     im1 = imread(im_path1);
     im2 = imread(im_path2);
     
     % if used for assignment 2 --> make grid of non-overlapping regions
     % else if used for assignment 3 --> make regions around interest points
-    if nargin < 6
+    if nargin < 4
         interest_points = make_grid(im1, region_size);
     end
     
-    if nargin < 7
+    if nargin < 5
         verbose = true;
     end
         
@@ -90,6 +90,5 @@ function display_results(im, interest_points, V)
     figure, imshow(im);
     hold on
     quiver(Pcol, Prow, Vrow, Vcol, 'AutoScale', 'off');
-    %quiver(Pcol, Prow, Vrow, Vcol);
     hold off
 end
