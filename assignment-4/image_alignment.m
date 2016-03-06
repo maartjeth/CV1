@@ -31,17 +31,11 @@ function [matches, frames1, desc1, frames2, desc2] = get_matches(im1, im2)
     % interest points and regions around this (step 1 & 2)
     [frames1, desc1] = vl_sift(im1);
     [frames2, desc2] = vl_sift(im2);
-       
+          
     % get matches (step 3)
     [matches] = vl_ubcmatch(desc1, desc2);
     
-    
-    
-    %size(matches)
-    %matches(1,2)
-    %matches(1,3)
-    %d = desc1(1:20)
-    %[x, y] = ismember(matches(1, 3), desc2) 
+   
 end
 
 function plot_images(frames, desc, im)
@@ -63,6 +57,7 @@ function [transformations] = ransac(N, P, matches, frames1, frames2)
 
     A = zeros(2*P, 6);
     b = zeros(2*P, 1);
+    no_inliers = 0;
     for i=1:N
         perm = randperm(size(matches, 2)); % number of columns gives number of matches found
         rand_matches = matches(:, perm(1:P));
@@ -87,46 +82,36 @@ function [transformations] = ransac(N, P, matches, frames1, frames2)
             b(p+1) = y2;
         end
 
-        x = pinv(A)*b; % now you can compute x based on 1 p point only, how to add all the others to it?
+        trans_mat = pinv(A)*b; % now you can compute x based on 1 p point only, how to add all the others to it?
         
+        % transform locations
+        M = reshape(trans_mat(1:4), [2,2])';
+        t = trans_mat(5:6);
+        
+        T1 = frames1(1:2, matches(1, :));   
+        T2 = frames2(1:2, matches(2, :));
+        % this is a bit rediculous..
+        res1 = M * T1(1:2, :);
+        res2 = res1(1, :) + t(1);
+        res3 = res1(2, :) + t(2);        
+        new_T = [res2; res3];
+
+        % PLOT LINES BETWEEN TRANSFORMATION: https://github.com/vlfeat/vlfeat/blob/master/toolbox/demo/vl_demo_sift_match.m
+        
+        % compute in- and outliers and keep them if needed        
+        diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
+        inliers = diff(diff < 10 & diff > -10);
+        
+        % SO WHERE DO YOU UPDATE ANYTHING??????
+        if size(inliers, 1) > no_inliers
+            best_inliers = inliers; % why do you need these?
+            no_inliers = size(inliers, 1);
+            best_pars = trans_mat;
+        end           
     end
+    
+    % TRANSFORM IMAGE, USING YOUR OWN NEAREST-NEIGHBOUR IMPLEMENTATION
     transformations = 0;
 end
 
-
-function test_stuff()
-% Detection of frames and descriptors
-    im1 = imread('img1.pgm');
-    im2 = imread('img2.pgm');
-%     figure, imshow(im1);
-%     figure, imshow(im2);
-    im1 = single(im1);
-    im2 = single(im2);
-    
-
-     [frames, descriptors] = vl_sift(im1);
-%     perm = randperm(size(frames, 2));
-%     sel = perm(1:20);
-%     h1 = vl_plotframe(frames(:, sel));
-%     h2 = vl_plotframe(frames(:, sel));
-%     h3 = vl_plotsiftdescriptor(descriptors(:,sel), frames(:, sel));
-%     set(h1, 'color', 'k', 'linewidth', 3);
-%     set(h2, 'color', 'y', 'linewidth', 2);
-%     set(h3, 'color', 'g');
-    
-     [frames2, descriptors2] = vl_sift(im2);
-%     perm = randperm(size(frames2, 2));
-%     sel = perm(1:20);
-%     h11 = vl_plotframe(frames2(:, sel));
-%     h22 = vl_plotframe(frames2(:, sel));
-%     h33 = vl_plotsiftdescriptor(descriptors2(:,sel), frames2(:, sel));
-%     set(h11, 'color', 'k', 'linewidth', 3);
-%     set(h22, 'color', 'y', 'linewidth', 2);
-%     set(h33, 'color', 'g');
-
-    % matches has two rows and columns for all matching descriptors
-    [matches] = vl_ubcmatch(descriptors, descriptors2);
-    matches(1, 1)
-    matches(2, 1)
-    
-end
+% image stitching: http://www.mathworks.com/matlabcentral/answers/108769-how-to-stitch-two-images-with-overlapped-area
