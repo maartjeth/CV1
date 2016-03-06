@@ -1,0 +1,47 @@
+% Documentation: http://www.vlfeat.org/overview/sift.html
+
+function image_alignment(im_path1, im_path2)
+    
+    close all;
+    
+    matches = get_matches(im1, im2);
+    
+    
+
+    % Detection of frames and descriptors
+    im1 = imread('img1.pgm');
+    im2 = imread('img2.pgm');
+%     figure, imshow(im1);
+%     figure, imshow(im2);
+    im1 = single(im1);
+    im2 = single(im2);
+    
+
+     [frames, descriptors] = vl_sift(im1);
+%     perm = randperm(size(frames, 2));
+%     sel = perm(1:20);
+%     h1 = vl_plotframe(frames(:, sel));
+%     h2 = vl_plotframe(frames(:, sel));
+%     h3 = vl_plotsiftdescriptor(descriptors(:,sel), frames(:, sel));
+%     set(h1, 'color', 'k', 'linewidth', 3);
+%     set(h2, 'color', 'y', 'linewidth', 2);
+%     set(h3, 'color', 'g');
+    
+     [frames2, descriptors2] = vl_sift(im2);
+%     perm = randperm(size(frames2, 2));
+%     sel = perm(1:20);
+%     h11 = vl_plotframe(frames2(:, sel));
+%     h22 = vl_plotframe(frames2(:, sel));
+%     h33 = vl_plotsiftdescriptor(descriptors2(:,sel), frames2(:, sel));
+%     set(h11, 'color', 'k', 'linewidth', 3);
+%     set(h22, 'color', 'y', 'linewidth', 2);
+%     set(h33, 'color', 'g');
+
+    % matches has two rows and columns for all matching descriptors
+    [matches] = vl_ubcmatch(descriptors, descriptors2);
+    matches(1, 1)
+    matches(2, 1)
+    
+    
+    
+end
