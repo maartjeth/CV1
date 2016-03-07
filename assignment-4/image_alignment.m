@@ -97,12 +97,24 @@ function [transformations] = ransac(N, P, matches, frames1, frames2)
         new_T = [res2; res3];
 
         % PLOT LINES BETWEEN TRANSFORMATION: https://github.com/vlfeat/vlfeat/blob/master/toolbox/demo/vl_demo_sift_match.m
+        % something like this:
         
+%         figure(); 
+%         imshow([im1,im2],[]);
+%         o = size(im1,2);
+%         for curr = 1:20
+%             c = datasample(1:size(im1,1), 20);
+%             line([f1match(1,c);f2match(1,c)+o], ...
+%                  [f1match(2,c);f2match(2,c)]);
+%         end
+
+% look at: http://inside.mines.edu/~whoff/courses/EENG512/lectures/12-SIFT-examples.pdf
+
         % compute in- and outliers and keep them if needed        
         diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
         inliers = diff(diff < 10 & diff > -10);
         
-        % SO WHERE DO YOU UPDATE ANYTHING??????
+        % SO WHERE DO YOU UPDATE ANYTHING?????? --> we don't need to??
         if size(inliers, 1) > no_inliers
             best_inliers = inliers; % why do you need these?
             no_inliers = size(inliers, 1);
