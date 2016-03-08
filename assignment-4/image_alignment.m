@@ -19,8 +19,8 @@ function image_alignment(im_path1, im_path2, N)
     % plot_images(frames2, desc2, im2); 
     
     % RANSAC
-    N = 1;
-    P = 1;
+    N = 20;
+    P = 10;
     transformations = ransac(N, P, matches, frames1, frames2, im1, im2);     
 end
 
@@ -56,10 +56,11 @@ end
 
 function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
 
-    A = zeros(2*P, 6);
-    b = zeros(2*P, 1);
+
     no_inliers = 0;
     for i=1:N
+        A = zeros(2*P, 6); % resetting matrices in the beginning of the loop
+        b = zeros(2*P, 1);
         perm = randperm(size(matches, 2)); % number of columns gives number of matches found
         rand_matches = matches(:, perm(1:P));
         % i'm far from sure whether this is how you're supposed to do this
@@ -96,13 +97,16 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         res2 = res1(1, :) + t(1);
         res3 = res1(2, :) + t(2);        
         new_T = [res2; res3];
-
-        % plot lines between transformation
+        
+        % THE REAL TRANSFORMATION IS STILL TO BE DONE
+        
+        % plot lines between transformation --> this is still between
+        % matchigng points
         % source: http://inside.mines.edu/~whoff/courses/EENG512/lectures/12-SIFT-examples.pdf
         figure, imshow([im1, im2], []);
-        o = size(im1, 2);
-        sample = 20;
-        line([T1(1,1:sample);T2(1,1:sample)+o], [T1(2,1:sample);T2(2,1:sample)]);
+        add_cols = size(im1, 2);
+        sample = 2;
+        line([T1(1,1:sample);T2(1,1:sample)+add_cols], [T1(2,1:sample);T2(2,1:sample)]);
        
         % compute in- and outliers and keep them if needed        
         diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
