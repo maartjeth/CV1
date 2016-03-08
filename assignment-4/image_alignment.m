@@ -96,9 +96,8 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         res1 = M * T1(1:2, :);
         res2 = res1(1, :) + t(1);
         res3 = res1(2, :) + t(2);        
-        new_T = [res2; res3];
-        
-        % THE REAL TRANSFORMATION IS STILL TO BE DONE
+        new_T = [res2; res3]; % this is the transformed image (naming is a bit odd..)
+         
         
         % plot lines between transformation --> this is still between
         % matchigng points
