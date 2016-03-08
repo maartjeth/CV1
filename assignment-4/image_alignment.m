@@ -19,7 +19,7 @@ function image_alignment(im_path1, im_path2, N)
     % plot_images(frames2, desc2, im2); 
     
     % RANSAC
-    N = 20;
+    N = 1;
     P = 10;
     transformations = ransac(N, P, matches, frames1, frames2, im1, im2);     
 end
@@ -56,6 +56,7 @@ end
 
 function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
 
+    % for P = 10, the transformations seem to work quite well?
 
     no_inliers = 0;
     for i=1:N
@@ -104,8 +105,8 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         % source: http://inside.mines.edu/~whoff/courses/EENG512/lectures/12-SIFT-examples.pdf
         figure, imshow([im1, im2], []);
         add_cols = size(im1, 2);
-        sample = 2;
-        line([T1(1,1:sample);T2(1,1:sample)+add_cols], [T1(2,1:sample);T2(2,1:sample)]);
+        sample = 4; % how many lines do you want to show --> otherwise it's so messy with lines
+        line([T1(1,1:sample);new_T(1,1:sample)+add_cols], [T1(2,1:sample);new_T(2,1:sample)]);
        
         % compute in- and outliers and keep them if needed        
         diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
