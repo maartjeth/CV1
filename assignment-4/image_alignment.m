@@ -105,7 +105,7 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         % source: http://inside.mines.edu/~whoff/courses/EENG512/lectures/12-SIFT-examples.pdf
         figure, imshow([im1, im2], []);
         add_cols = size(im1, 2);
-        sample = 4; % how many lines do you want to show --> otherwise it's so messy with lines
+        sample = 10; % how many lines do you want to show --> otherwise it's so messy with lines
         line([T1(1,1:sample);new_T(1,1:sample)+add_cols], [T1(2,1:sample);new_T(2,1:sample)]);
        
         % compute in- and outliers and keep them if needed        
@@ -116,11 +116,20 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         if size(inliers, 1) > no_inliers
             best_inliers = inliers; % why do you need these?
             no_inliers = size(inliers, 1);
-            best_pars = trans_mat;
+            best_trans_mat = trans_mat;
         end           
     end
     
     % TRANSFORM IMAGE, USING YOUR OWN NEAREST-NEIGHBOUR IMPLEMENTATION
+    % I guess that is because now you have pixel values that might not
+    % really exist. So, you need to go from a continuous to a discrete space
+    % and that's what you're gonna use nearest neighbours for. But for now
+    % first with the imtransform only.
+    
+    % doesn't entirely work yet: http://nl.mathworks.com/help/images/ref/maketform.html
+%     real_trans_mat = maketform('affine', best_trans_mat);
+%     transformation1 = imtransform(im1, real_trans_mat);
+%     figure, imshow(transformation1);
     transformations = 0;
 end
 
