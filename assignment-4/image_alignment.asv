@@ -97,13 +97,15 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         res3 = res1(2, :) + t(2);        
         new_T = [res2; res3];
 
-        % plot lines between transformation
+        % PLOT LINES BETWEEN TRANSFORMATION: https://github.com/vlfeat/vlfeat/blob/master/toolbox/demo/vl_demo_sift_match.m
+        % something like this:
         % source: http://inside.mines.edu/~whoff/courses/EENG512/lectures/12-SIFT-examples.pdf
         figure, imshow([im1, im2], []);
         o = size(im1, 2);
         sample = 20;
         line([T1(1,1:sample);T2(1,1:sample)+o], [T1(2,1:sample);T2(2,1:sample)]);
        
+
         % compute in- and outliers and keep them if needed        
         diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
         inliers = diff(diff < 10 & diff > -10);
