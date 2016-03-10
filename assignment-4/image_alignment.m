@@ -11,6 +11,9 @@ function image_alignment(im_path1, im_path2, N)
     im1 = imread(im_path1);
     im2 = imread(im_path2);
     
+    im1 = rgb2gray(im1);
+    im2 = rgb2gray(im2);
+    
     % Steps 1, 2, 3 --> use David Lowes SIFT
     [matches, frames1, desc1, frames2, desc2] = get_matches(im1, im2);
     
@@ -56,7 +59,7 @@ end
 function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
 
     % for P = 10, the transformations seem to work quite well?
-
+    N = 1000;
     no_inliers = 0;
     for i=1:N
         A = zeros(2*P, 6); % resetting matrices in the beginning of the loop
@@ -111,9 +114,9 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
         inliers = diff(diff < 10 & diff > -10);
         
-        if size(inliers, 1) > no_inliers
+        if size(inliers, 2) > no_inliers
             best_inliers = inliers; % why do you need these?
-            no_inliers = size(inliers, 1);
+            no_inliers = size(inliers, 2);
             best_trans_mat = trans_mat;
         end  
         
@@ -130,8 +133,8 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
      t = best_trans_mat(5:6);
      
      %do_transform_matlab(M, t, im1, im2);
-     do_transform_homebrew(M, t, im1);
-
+     %do_transform_homebrew(M, t, im1);
+     do_transform_stitching(M, t, im1, im2);
     transformations = 0;
 end
 
@@ -189,3 +192,60 @@ function do_transform_homebrew(M, t, im1)
 end
 
 % image stitching: http://www.mathworks.com/matlabcentral/answers/108769-how-to-stitch-two-images-with-overlapped-area
+
+
+function do_transform_stitching(M, t, im1, im2)
+   t = flipud(t);
+   res1 = M * [1,1 ; 1, size(im1, 2) ; size(im1, 1), 1 ; size(im1, 1), size(im1, 2)]';
+   res2 = round(res1(1, :) + t(1));
+   res3 = round(res1(2, :) + t(2));
+   min_rows1 = min(res2);
+   max_rows1 = max(res2);
+   min_cols1 = min(res3);
+   max_cols1 = max(res3);
+
+   max_rows2 = size(im2,1);
+   max_cols2 = size(im2,2);
+   
+   offset_rows = - min(0, min_rows1);
+   offset_cols = - min(0, min_cols1);
+   
+   t_rows = max(max_rows1, max_rows2)-min(min_rows1, 1);
+   t_cols = max(max_cols1, max_cols2)-min(min_cols1, 1);
+   
+   target_mat = zeros(t_rows, t_cols);
+   
+   
+   
+   for x = 1:size(im1,1)
+       for y = 1:size(im1,2)
+           
+            res1 = M * [x;y];
+            new_x = res1(1, :) + t(1);
+            new_y = res1(2, :) + t(2);
+%             offset_rows
+%             offset_cols
+            target_mat(offset_rows +1+ round(new_x), offset_cols +1+ round(new_y)) = im1(x,y);
+       end
+   end
+   
+   [row, col] = find(target_mat == 0);
+   pos = [row, col];
+   for idx = 1:size(pos,1)
+       row = pos(idx,1);
+       col = pos(idx,2);
+       
+       if  row > 1 && col > 1 && row < size(target_mat,1) && ...
+               col < size(target_mat,2)
+           window = target_mat(row-1:row+1, col-1:col+1);
+           if sum(window == 0) < 4
+            target_mat(row,col) = (sum(window(:))-window(2,2))/8.0;
+           end
+       end
+           
+   end
+   
+   target_mat((1:size(im2,1))+offset_rows, (1:size(im2,2))+offset_cols) = im2;
+   
+   figure, imshow(target_mat/255);
+end
