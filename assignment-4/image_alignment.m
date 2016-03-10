@@ -103,34 +103,58 @@ function [transformations] = ransac(N, P, matches, frames1, frames2, im1, im2)
         % plot lines between transformation --> this is still between
         % matchigng points
         % source: http://inside.mines.edu/~whoff/courses/EENG512/lectures/12-SIFT-examples.pdf
-        figure, imshow([im1, im2], []);
+        %figure, imshow([im1, im2], []);
         add_cols = size(im1, 2);
         sample = 10; % how many lines do you want to show --> otherwise it's so messy with lines
-        line([T1(1,1:sample);new_T(1,1:sample)+add_cols], [T1(2,1:sample);new_T(2,1:sample)]);
+        %line([T1(1,1:sample);new_T(1,1:sample)+add_cols], [T1(2,1:sample);new_T(2,1:sample)]);
        
         % compute in- and outliers and keep them if needed        
         diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
         inliers = diff(diff < 10 & diff > -10);
         
-        % SO WHERE DO YOU UPDATE ANYTHING?????? --> we don't need to??
         if size(inliers, 1) > no_inliers
             best_inliers = inliers; % why do you need these?
             no_inliers = size(inliers, 1);
             best_trans_mat = trans_mat;
-        end           
-    end
+        end  
+        
+        
+    end  
     
     % TRANSFORM IMAGE, USING YOUR OWN NEAREST-NEIGHBOUR IMPLEMENTATION
     % I guess that is because now you have pixel values that might not
     % really exist. So, you need to go from a continuous to a discrete space
     % and that's what you're gonna use nearest neighbours for. But for now
-    % first with the imtransform only.
-    
-    % doesn't entirely work yet: http://nl.mathworks.com/help/images/ref/maketform.html
-%     real_trans_mat = maketform('affine', best_trans_mat);
-%     transformation1 = imtransform(im1, real_trans_mat);
-%     figure, imshow(transformation1);
+    % first with the imtransform only.    
+
+     M = reshape(best_trans_mat(1:4), [2,2]);
+     t = best_trans_mat(5:6);
+     
+     %do_transform_matlab(M, t, im1, im2);
+     do_transform_homebrew(M, t, im1);
+
     transformations = 0;
+end
+
+function do_transform_matlab(M, t, im1, im2)
+     mat = zeros(3, 3);
+     mat(1:2, 1:2) = M;
+     mat(3, 1:2) = t;
+     mat(3, 3) = 1;
+     
+     real_trans_mat = maketform('affine', mat);
+     transformation = imtransform(im1, real_trans_mat);
+     figure, imshow(im2);
+     figure, imshow(transformation);
+end
+
+function do_transform_homebrew(M, t, im1)
+   res1 = M * im1(1, :);
+   res2 = res1(1, :) + t(1);
+   res3 = res1(2, :) + t(2);        
+   transformed_image = [res2; res3]; 
+   
+   figure, imshow(transformed_image);
 end
 
 % image stitching: http://www.mathworks.com/matlabcentral/answers/108769-how-to-stitch-two-images-with-overlapped-area
