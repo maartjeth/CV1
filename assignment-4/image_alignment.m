@@ -19,7 +19,6 @@ function image_alignment(im_path1, im_path2, N)
     % plot_images(frames2, desc2, im2); 
     
     % RANSAC
-    N = 1;
     P = 10;
     transformations = ransac(N, P, matches, frames1, frames2, im1, im2);     
 end
@@ -149,12 +148,44 @@ function do_transform_matlab(M, t, im1, im2)
 end
 
 function do_transform_homebrew(M, t, im1)
-   res1 = M * im1(1, :);
-   res2 = res1(1, :) + t(1);
-   res3 = res1(2, :) + t(2);        
-   transformed_image = [res2; res3]; 
+   size([1,1 ; 1, size(im1, 2) ; size(im1, 1), 1 ; size(im1, 1), size(im1, 2)])
+   res1 = M * [1,1 ; 1, size(im1, 2) ; size(im1, 1), 1 ; size(im1, 1), size(im1, 2)]';
+   res2 = round(res1(1, :) + t(1));
+   res3 = round(res1(2, :) + t(2));
+   min_rows = min(res2);
+   max_rows = max(res2);
+   min_cols = min(res3);
+   max_cols = max(res3);
+
+   target_mat = zeros(max_rows-min_rows, max_cols-min_cols);
+   for x = 1:size(im1,1)
+       for y = 1:size(im1,2)
+           
+            res1 = M * [x;y];
+            new_x = res1(1, :) + t(1);
+            new_y = res1(2, :) + t(2);
+            target_mat(round(new_x-min_rows+1), round(new_y-min_cols+1)) = im1(x,y);
+       end
+   end
    
-   figure, imshow(transformed_image);
+   [row, col] = find(target_mat == 0);
+   pos = [row, col];
+   for idx = 1:size(pos,1)
+       row = pos(idx,1);
+       col = pos(idx,2);
+       
+       if  row > 1 && col > 1 && row < size(target_mat,1) && ...
+               col < size(target_mat,2)
+           window = target_mat(row-1:row+1, col-1:col+1);
+           if sum(window == 0) < 4
+            target_mat(row,col) = sum(window(:))/8.0;
+           end
+       end
+           
+   end
+   
+   
+   figure, imshow(target_mat/255);
 end
 
 % image stitching: http://www.mathworks.com/matlabcentral/answers/108769-how-to-stitch-two-images-with-overlapped-area
