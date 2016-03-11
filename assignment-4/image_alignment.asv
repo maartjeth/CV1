@@ -211,8 +211,8 @@ function do_transform_stitching(M, t, im1, im2)
    
    target_mat = zeros(t_rows, t_cols, 3);
    
-   im2_col = imread('left.jpg');
-   im1_col = imread('right.jpg');
+   im1_col = imread('left.jpg');
+   im2_col = imread('right.jpg');
    
    
    for x = 1:size(im1,1)
@@ -236,10 +236,9 @@ function do_transform_stitching(M, t, im1, im2)
        % nearest neighbour
        if  row > 1 && col > 1 && row < size(target_mat,1) && ...
                col < size(target_mat,2)
-           graywindow = target_mat(row-1:row+1, col-1:col+1);
-           if sum(graywindow == 0) < 4
-               rgbwindow = target_mat(row-1:row+1, col-1:col+1,:);
-            target_mat(row,col,:) = squeeze((sum(sum(rgbwindow)))./8.0);
+           window = target_mat(row-1:row+1, col-1:col+1);
+           if sum(window == 0) < 4
+            target_mat(row,col,:) = (sum(window(:)))/8.0;
            end
        end
            
