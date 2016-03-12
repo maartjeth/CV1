@@ -1,11 +1,13 @@
-% image stitching: http://www.mathworks.com/matlabcentral/answers/108769-how-to-stitch-two-images-with-overlapped-area
+% Computer Vision Assignment 4
+% Frederik Harder - 10986847 - frederikharder@gmail.com
+% Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
 function do_transform_stitching(M, t, im_path1, im_path2)
     
     im1 = imread(im_path1);
     im2 = imread(im_path2);
 
-    t = flipud(t); % WHYYYYYY???
+    t = flipud(t);
    
     corners = [1,1 ; 1, size(im1, 2) ; size(im1, 1), 1 ; size(im1, 1), size(im1, 2)]';
     corner_transforms = round(M * corners + repmat(t,1,size(corners,2)));

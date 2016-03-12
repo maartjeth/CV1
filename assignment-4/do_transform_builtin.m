@@ -1,3 +1,7 @@
+% Computer Vision Assignment 4
+% Frederik Harder - 10986847 - frederikharder@gmail.com
+% Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
+
 function do_transform_builtin(M, t, im_path)
 
     im = imread(im_path);

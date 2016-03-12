@@ -1,9 +1,6 @@
-% Computer Vision Assignment 4 Part 1
+% Computer Vision Assignment 4
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
-
-% Documentation: http://www.vlfeat.org/overview/sift.html
-% Maartje: in maartje/vlfeat-0.9.20-bin/vlfeat-0.9.20 run: run('toolbox/vl_setup')
 
 function [M, t] = image_alignment(im_path1, im_path2, N, P, showplots)
     
@@ -46,9 +43,7 @@ function [matches, frames1, desc1, frames2, desc2] = get_matches(im1, im2)
     [frames2, desc2] = vl_sift(im2);
           
     % get matches (step 3)
-    [matches] = vl_ubcmatch(desc1, desc2);
-    
-   
+    [matches] = vl_ubcmatch(desc1, desc2);   
 end
 
 function plot_images(frames, desc, im)
@@ -68,15 +63,13 @@ end
 
 function [M, t] = ransac(N, P, matches, frames1, frames2, im1, im2, showplots)
 
-    % for P = 10, the transformations seem to work quite well?
     no_inliers = 0;
     for i=1:N
         A = zeros(2*P, 6); % resetting matrices in the beginning of the loop
         b = zeros(2*P, 1);
         perm = randperm(size(matches, 2)); % number of columns gives number of matches found
         rand_matches = matches(:, perm(1:P));
-        % i'm far from sure whether this is how you're supposed to do this
-        for p=1:2:2*P % what follows can probably be coded in less lines, but just for my understanding like this for now
+        for p=1:2:2*P 
             
             match_im1 = rand_matches(1, ceil(p/2)); % first get the indices of the matching pairs, ceil because you have intervals of 2 in the loop
             match_im2 = rand_matches(2, ceil(p/2));
@@ -96,7 +89,7 @@ function [M, t] = ransac(N, P, matches, frames1, frames2, im1, im2, showplots)
             b(p+1) = y2;
         end
 
-        trans_mat = pinv(A)*b; % now you can compute x based on 1 p point only, how to add all the others to it?
+        trans_mat = pinv(A)*b; 
         
         % transform locations
         M = reshape(trans_mat(1:4), [2,2])';
@@ -105,11 +98,9 @@ function [M, t] = ransac(N, P, matches, frames1, frames2, im1, im2, showplots)
         T1 = frames1(1:2, matches(1, :));   
         T2 = frames2(1:2, matches(2, :));
         
-        new_T = M * T1(1:2, :) + repmat(t,1,size(T1,2)); % this is the transformed image (naming is a bit odd..)
-         
-        
-        % plot lines between transformation --> this is still between
-        % matchigng points
+        new_T = M * T1(1:2, :) + repmat(t,1,size(T1,2)); % this is the transformed image
+                 
+        % plot lines between transformation
         % source: http://inside.mines.edu/~whoff/courses/EENG512/lectures/12-SIFT-examples.pdf
         if showplots
             figure, imshow([im1, im2], []);
@@ -118,12 +109,13 @@ function [M, t] = ransac(N, P, matches, frames1, frames2, im1, im2, showplots)
             sample_idx = datasample(1:size(T1,2), num_samples, 2, 'Replace', false); 
             line([T1(1,sample_idx);new_T(1,sample_idx)+add_cols], [T1(2,sample_idx);new_T(2,sample_idx)]);
         end
+        
         % compute in- and outliers and keep them if needed        
         diff = sqrt( (T2(1,:) - new_T(1,:)).^2 + (T2(2,:) - new_T(2,:)).^2 );
         inliers = diff(diff < 10 & diff > -10);
         
         if size(inliers, 2) > no_inliers
-            best_inliers = inliers; % why do you need these?
+            best_inliers = inliers;
             no_inliers = size(inliers, 2);
             best_trans_mat = trans_mat;
         end  
