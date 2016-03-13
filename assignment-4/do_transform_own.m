@@ -5,6 +5,7 @@
 function do_transform_own(M, t, im_path1)
     im1 = imread(im_path1);
     
+    % estimate dimensions of new image by transforming the corners of the old
     corners = [1,1 ; 1, size(im1, 2) ; size(im1, 1), 1 ; size(im1, 1), size(im1, 2)]';
     corner_transforms = round(M * corners + repmat(t,1,size(corners,2)));
     min_rows = min(corner_transforms(1,:));
@@ -12,6 +13,7 @@ function do_transform_own(M, t, im_path1)
     min_cols = min(corner_transforms(2,:));
     max_cols = max(corner_transforms(2,:));
 
+    % make frame for new image
     target_mat = zeros(max_rows-min_rows, max_cols-min_cols);
    
     for x = 1:size(target_mat,1)
