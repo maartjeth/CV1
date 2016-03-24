@@ -2,6 +2,8 @@
 % Frederik Harder - 10986847 - frederikharder@gmail.com
 % Maartje ter Hoeve - 10190015 - maartje.terhoeve@student.uva.nl
 
+
+
 function [M, t] = image_alignment(im_path1, im_path2, N, P, showplots)
     
     if nargin < 4
