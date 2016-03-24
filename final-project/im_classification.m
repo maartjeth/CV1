@@ -23,13 +23,14 @@ function im_classification()
     vocab_size = 4;
     filename = 'C:\Users\Maartje\Documents\Studie\master\cv1_git\final-project\Caltech4\FeatureData\debug.mat';
     sift_type = 'normal';
+    im_directory = 'C:\Users\Maartje\Documents\Studie\master\cv1_git\final-project\Caltech4\ImageData\debug2';
     
     desc_mat = feature_extraction('C:\Users\Maartje\Documents\Studie\master\cv1_git\final-project\Caltech4\ImageData\debug', 'normal');
     build_vis_vocab(desc_mat, vocab_size, filename);
     
     
     load(filename);
-    make_hists_ims(im, sift_type, filename)
+    make_hists_ims(im_directory, sift_type, C)
     
     
 end
@@ -50,25 +51,41 @@ end
 
 function build_vis_vocab(desc_mat, vocab_size, filename)
     [~, C] = kmeans(desc_mat, vocab_size);    
+    display('C')
+    size(C)
     save(filename, 'C');
 end
 
+% make histograms for all images
 function make_hists_ims(im_directory, sift_type, vocab)
 
-    paths = get_imagepaths(im_directory);
-    for impath=paths
-        im = imread(impath);
+    paths = get_imagepaths(im_directory, 'jpg');
+    size(paths)
+    for i=1:size(paths, 1)
+        
+        im = imread(paths{i});
         hist = make_hist_im(im, sift_type, vocab);
     end
     
 
 end
 
+% make a histogram for a single image
 function hist = make_hist_im(im, sift_type, vocab)    
 
     if strcmp(sift_type, 'normal')
-        [~, desc] = vl_sift(single(rgb2gray(im));
-        word = knnsearch(desc, C);
+        [~, desc] = vl_sift(single(rgb2gray(im)));
+        size(desc)
+        size(vocab)
+        words = knnsearch(vocab, desc');
+        %hist = histogram(word)
+        
+        hist = zeros(1, size(vocab, 1));
+        for i = 1:size(words,1)
+            hist(words(i)) = hist(words(i)) + 1;
+        end
+        hist = hist ./ size(words,1);
+        
         
     end
 end
