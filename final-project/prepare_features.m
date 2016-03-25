@@ -82,7 +82,7 @@ function train_data = build_histograms(label_sets, vocabulary, sift_type)
         im_paths = label_sets{label};
         label_data = zeros(length(im_paths), size(vocabulary, 1));
         
-        for idx = length(im_paths)
+        for idx = 1:length(im_paths)
             im = imread(im_paths{idx});
             label_data(idx, :) = make_hist(im, sift_type, vocabulary);
         end
@@ -94,18 +94,18 @@ end
 function hist = make_hist(im, sift_type, vocab)    
 
     desc = sift(im, sift_type);
-    words = knnsearch(vocab, desc');
+    words = knnsearch(vocab, double(desc'));
     hist = zeros(1, size(vocab, 1));
     for i = 1:size(words,1)
         hist(words(i)) = hist(words(i)) + 1;
     end
-    hist = hist ./ size(words,1);
+    hist = hist ./ double(size(words,1));
 end
 
 function tfiles = get_test_files(test_dirs, file_format)
-    tfiles = cell(0, 1);
+    tfiles = cell(length(test_dirs), 1); 
     for idx = 1:length(test_dirs)
         im_paths = get_imagepaths(test_dirs{idx}, file_format); % get file paths
-        tfiles = [tfiles; im_paths];
+        tfiles{idx} = im_paths;
     end
 end

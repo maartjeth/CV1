@@ -7,6 +7,7 @@ file_format = 'jpg';
 vocab_percentage = 0.5;
 vocab_size = 20;
 sift_type = 'ip_intensity_1';
-  
-prepare_features(source_dirs, target_dir, file_format, vocab_percentage, vocab_size, sift_type);
+test_dirs = {'.\Caltech4\debug\source'};
+
+prepare_features(source_dirs, target_dir, file_format, vocab_percentage, vocab_size, sift_type, test_dirs);
 
