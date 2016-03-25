@@ -4,12 +4,14 @@ function im_classification_merge()
 
     target_dir = '.\Caltech4\debug\target';
     sift_type = 'ip_intensity_1';
-    vocab_size = 20;
+    vocab_size = 400;
 
-    filename = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
+    filename_train = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
+    filename_test = strcat(target_dir, '\test_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
     
     % training
-    load(filename);
+    load(filename_train);
+    load(filename_test);
     
     % SVM class 1
     [X, y] = make_data(train_data, 1);
@@ -28,17 +30,31 @@ function im_classification_merge()
     SVMModel_4 = train_SVM(X, y);
     
     
-    % Classifying
+    % Classifying and computing MAP   
+    [X_test, t] = make_data(test_data, 1)
+    labels_1 = classify_im(SVMModel_1, X_test)    
+    MAP_1 = test(labels_1, t)
     
-    % MAP
     
+    [X_test, t] = make_data(test_data, 2);
+    labels_2 = classify_im(SVMModel_2, X_test);    
+    MAP_2 = test(labels_2, t);
+    
+    [X_test, t] = make_data(test_data, 3);
+    labels_3 = classify_im(SVMModel_3, X_test);    
+    MAP_3 = test(labels_3, t);
+    
+    [X_test, t] = make_data(test_data, 4);
+    labels_4 = classify_im(SVMModel_4, X_test);
+    MAP_4 = test(labels_4, t);
+
 end
 
-function [X_train, y_train] = make_data(train_data, class)
-    X_train = train_data(:, 1:end-1);
-    y_train = train_data(:, end);
-    y_train(y_train ~= class) = 0;
-    y_train(y_train == class) = 1;
+function [X, y] = make_data(data, class)
+    X = data(:, 1:end-1);
+    y = data(:, end);
+    y(y ~= class) = 0;
+    y(y == class) = 1;
 end
 
 function SVMModel = train_SVM(X, y)

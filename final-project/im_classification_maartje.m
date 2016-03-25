@@ -42,8 +42,6 @@ function im_classification_maartje()
     labels = classify_im(SVMModel, X_test);
     
     % computing MAP
-    labels = [1, 0, 1, 0, 1];
-    t = [1, 0, 1, 0, 0];
     MAP = test(labels, t)
                 
     
