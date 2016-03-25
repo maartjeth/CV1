@@ -25,17 +25,28 @@ function im_classification_maartje()
     sift_type = 'normal';
     im_directory1 = 'C:\Users\Maartje\Documents\Studie\master\cv1_git\final-project\Caltech4\ImageData\debug';
     im_directory2 = 'C:\Users\Maartje\Documents\Studie\master\cv1_git\final-project\Caltech4\ImageData\debug2';
-
+    im_directories = {im_directory1, im_directory2};
+    warning('off','stats:pdist2:DataConversion');
+   
+    % preprocessing
     desc_mat = feature_extraction(im_directory1, 'normal');
     build_vis_vocab(desc_mat, vocab_size, filename);
     
-    
+    % training
     load(filename);
-    make_hists_ims(im_directory2, sift_type, C)
+    [X, y] = make_data(im_directories, sift_type, C);
+    SVMModel = train_SVM(X, y);
     
+    % classifying (should use other data than train data of course)
+    labels = classify_im(SVMModel, X);
+    
+    % computing MAP
+
+                
     
 end
 
+% 'Real' preprocessing
 function desc_mat = feature_extraction(directory, sift_type)
     image_paths = get_imagepaths(directory, 'jpg');
     
@@ -52,20 +63,43 @@ end
 
 function build_vis_vocab(desc_mat, vocab_size, filename)
     [~, C] = kmeans(desc_mat, vocab_size);    
-    display('C')
-    size(C)
     save(filename, 'C');
+end
+
+
+% Getting the data to train and test the SVM on (i.e. just getting the
+% right data format)
+function [X_train, y_train] = make_data(im_directories, sift_type, vocab)
+    % list of the different directories --> use same order every single
+    % time so that you can easily extract y
+
+    X_train = zeros(0, size(vocab, 1));    
+    y_train = zeros(0, 1);
+    
+    for i=1:size(im_directories, 2)
+        im_dir = im_directories{i};
+        X = make_hists_ims(im_dir, sift_type, vocab);
+        X_train(end+1:end+size(X, 1), :) = X;
+        if i == 1
+            y = ones(size(X, 1), 1);
+        else
+            y = zeros(size(X, 1), 1);
+        end
+        y_train(end+1:end+size(y, 1), :) = y;
+    end
+
 end
 
 % make histograms for all images
 function hists = make_hists_ims(im_directory, sift_type, vocab)
 
     paths = get_imagepaths(im_directory, 'jpg');
+    hists = zeros(0,size(vocab, 1));
     for i=1:size(paths, 1)        
         im = imread(paths{i});
         hist = make_hist_im(im, sift_type, vocab);
-        hists(i, :) = hist;
-    end  
+        hists(end+1, :) = hist;
+    end             
 end
 
 % make a histogram for a single image
@@ -73,10 +107,7 @@ function hist = make_hist_im(im, sift_type, vocab)
 
     if strcmp(sift_type, 'normal')
         [~, desc] = vl_sift(single(rgb2gray(im)));
-        size(desc)
-        size(vocab)
         words = knnsearch(vocab, desc');
-        %hist = histogram(word)
         
         hist = zeros(1, size(vocab, 1));
         for i = 1:size(words,1)
@@ -88,20 +119,33 @@ function hist = make_hist_im(im, sift_type, vocab)
     end
 end
 
-function [X, y] = make_training_data(im_directories, sift_type, vocab)
-    % list of the different directories --> use same order every single
-    % time so that you can easily extract y
-
-    for i=1:size(im_directories, 2)
-        im_dir = im_directories(i);
-        X = make_hists_ims(im_dir, sift_type, vocab);
-        y = ones(size(X, 1), 1);
-        y = i*y; % every class gets number of i as label
-    end
-
-end
-
 function SVMModel = train_SVM(X, y)
     SVMModel = fitcsvm(X, y, 'KernelFunction', 'rbf', 'KernelScale', 'auto', 'Standardize', true);
+end
+
+function labels = classify_im(SVMModel, X)
+    labels = predict(SVMModel, X);
+end
+
+function MAP = test(labels, t)
+    % qualatitive part
+    test_matrix = [labels, t];
+    quant_test_matrix = sortrows(test_matrix, 1);
+    %MSE = (quant_test_matrix(1) - quant_test_matrix(2)).^2;
+    
+    % quantitative part
+    fc = 0;
+    total_score = 0;
+    for i=1:size(quant_test_matrix(2))
+        fc = fc + quant_test_matrix(i);
+        if quant_test_matrix(i) == 1
+            score = fc / i;
+        else 
+            score = fc;
+        end
+        total_score = total_score + score;
+    end
+    
+    MAP = total_score / size(quant_test_matrix(2));    
 end
 

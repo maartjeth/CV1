@@ -38,10 +38,11 @@ function im_classification_maartje()
     SVMModel = train_SVM(X, y);
     
     % classifying (should use other data than train data of course)
-    labels = classify_im(SVMModel, X);
+    [X_test, t] = make_data(im_directories, sift_type, C);
+    labels = classify_im(SVMModel, X_test);
     
-    
-
+    % computing MAP
+    MAP = test(labels, t)
                 
     
 end
@@ -125,5 +126,27 @@ end
 
 function labels = classify_im(SVMModel, X)
     labels = predict(SVMModel, X);
+end
+
+function MAP = test(labels, t)
+    % qualatitive part
+    test_matrix = [labels, t];
+    quant_test_matrix = sortrows(test_matrix, -1);
+    %MSE = (quant_test_matrix(1) - quant_test_matrix(2)).^2;
+    
+    % quantitative part
+    fc = 0;
+    total_score = 0;
+    for i=1:size(quant_test_matrix, 2)
+        fc = fc + quant_test_matrix(i);
+        if quant_test_matrix(i) == 1
+            score = fc / i;
+        else 
+            score = fc;
+        end
+        total_score = total_score + score;
+    end
+    
+    MAP = total_score / size(quant_test_matrix, 2);    
 end
 
