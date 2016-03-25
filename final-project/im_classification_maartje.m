@@ -32,10 +32,15 @@ function im_classification_maartje()
     desc_mat = feature_extraction(im_directory1, 'normal');
     build_vis_vocab(desc_mat, vocab_size, filename);
     
-    
+    % training
     load(filename);
-    [X, y] = make_training_data(im_directories, sift_type, C);
+    [X, y] = make_data(im_directories, sift_type, C);
     SVMModel = train_SVM(X, y);
+    
+    % classifying (should use other data than train data of course)
+    labels = classify_im(SVMModel, X);
+    
+    
 
                 
     
@@ -62,8 +67,9 @@ function build_vis_vocab(desc_mat, vocab_size, filename)
 end
 
 
-% Getting training data for SVM
-function [X_train, y_train] = make_training_data(im_directories, sift_type, vocab)
+% Getting the data to train and test the SVM on (i.e. just getting the
+% right data format)
+function [X_train, y_train] = make_data(im_directories, sift_type, vocab)
     % list of the different directories --> use same order every single
     % time so that you can easily extract y
 
@@ -74,8 +80,11 @@ function [X_train, y_train] = make_training_data(im_directories, sift_type, voca
         im_dir = im_directories{i};
         X = make_hists_ims(im_dir, sift_type, vocab);
         X_train(end+1:end+size(X, 1), :) = X;
-        y = ones(size(X, 1), 1);
-        y = i*y; % every class gets number of i as label
+        if i == 1
+            y = ones(size(X, 1), 1);
+        else
+            y = zeros(size(X, 1), 1);
+        end
         y_train(end+1:end+size(y, 1), :) = y;
     end
 
@@ -110,9 +119,11 @@ function hist = make_hist_im(im, sift_type, vocab)
     end
 end
 
-
-
 function SVMModel = train_SVM(X, y)
     SVMModel = fitcsvm(X, y, 'KernelFunction', 'rbf', 'KernelScale', 'auto', 'Standardize', true);
+end
+
+function labels = classify_im(SVMModel, X)
+    labels = predict(SVMModel, X);
 end
 
