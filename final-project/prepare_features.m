@@ -1,4 +1,4 @@
-function prepare_features(source_dirs, target_dir, file_format, vocab_percentage, vocab_size, sift_type)
+function prepare_features(source_dirs, target_dir, file_format, vocab_percentage, vocab_size, sift_type, test_dirs)
     % from each sdir, take part to create and save vis-vocab. then use rest
     % to make and save histogram training samples
 
@@ -12,6 +12,13 @@ function prepare_features(source_dirs, target_dir, file_format, vocab_percentage
     
     filename = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
     save(filename, 'vocabulary', 'train_data');
+    
+    if nargin > 6 % get histogram description of test data
+        tfiles = get_test_files(test_dirs, file_format);
+        test_data = build_histograms(tfiles, vocabulary, sift_type);
+        filename = strcat(target_dir, '\test_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
+        save(filename, 'test_data');
+    end
 end
 
 function [vfiles, ffiles] = divide_data(source_dirs, file_format, vocab_percentage)
@@ -49,6 +56,20 @@ function features = sift(im, type)
     switch type
         case 'ip_intensity_1'
             [~, features] = vl_sift(single(rgb2gray(im)));
+        case 'dense_intensity_1'
+            'a'
+        case 'ip_RGB_3'
+            'a'
+        case 'dense_RGB_3'
+            'a'
+        case 'ip_rgb_3'
+            'a'
+        case 'dense_rgb_3'
+            'a'
+        case 'ip_opponent_3'
+            'a'
+        case 'dense_opponent_3'
+            'a'
         otherwise
             display('invalid sift type')
     end
@@ -79,4 +100,12 @@ function hist = make_hist(im, sift_type, vocab)
         hist(words(i)) = hist(words(i)) + 1;
     end
     hist = hist ./ size(words,1);
+end
+
+function tfiles = get_test_files(test_dirs, file_format)
+    tfiles = cell(0, 1);
+    for idx = 1:length(test_dirs)
+        im_paths = get_imagepaths(test_dirs{idx}, file_format); % get file paths
+        tfiles = [tfiles; im_paths];
+    end
 end

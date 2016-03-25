@@ -1,21 +1,26 @@
-function prepare_features(source_dirs, target_dir, file_format, vocab_percentage, vocab_size, sift_type)
+function prepare_features(source_dirs, target_dir, file_format, vocab_percentage, vocab_size, sift_type, test_dirs)
     % from each sdir, take part to create and save vis-vocab. then use rest
     % to make and save histogram training samples
 
     rng(2718);
-    
-    source_dirs = {'.\Caltech4\debug\source'};
-    target_dir = '.\Caltech4\debug\target';
-    file_format = 'jpg';
-    vocab_percentage = 0.5;
-    sift_type = 'ip_intensity_1';
+
     
     [vfiles, ffiles] = divide_data(source_dirs, file_format, vocab_percentage);
 
     vocabulary = build_vocab(vfiles, sift_type, vocab_size);
     train_data = build_histograms(ffiles, vocabulary, sift_type);
     
-    strcat(target_dir, '\train_data_', sift_type, '_voc')
+    filename = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
+    save(filename, 'vocabulary', 'train_data');
+    
+    if nargin > 6 % get histogram description of test data
+        tfiles = get_test_files(test_dirs, file_format);
+        test_data = build_histograms(tfiles, vocabulary, sift_type);
+        filename = strcat(target_dir, '\test_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
+        save 
+    end
+    
+    
 end
 
 function [vfiles, ffiles] = divide_data(source_dirs, file_format, vocab_percentage)
@@ -36,7 +41,7 @@ function [vfiles, ffiles] = divide_data(source_dirs, file_format, vocab_percenta
 end
 
 function vocabulary = build_vocab(im_paths, sift_type, vocab_size)
-    num_channels = int(sift_type(end));
+    num_channels = str2double(sift_type(end));
     vocab_features = zeros(0, 128*num_channels);
 
     for i=1:size(im_paths, 1)
@@ -53,6 +58,20 @@ function features = sift(im, type)
     switch type
         case 'ip_intensity_1'
             [~, features] = vl_sift(single(rgb2gray(im)));
+        case 'dense_intensity_1'
+            'a'
+        case 'ip_RGB_3'
+            'a'
+        case 'dense_RGB_3'
+            'a'
+        case 'ip_rgb_3'
+            'a'
+        case 'dense_rgb_3'
+            'a'
+        case 'ip_opponent_3'
+            'a'
+        case 'dense_opponent_3'
+            'a'
         otherwise
             display('invalid sift type')
     end
@@ -67,7 +86,7 @@ function train_data = build_histograms(label_sets, vocabulary, sift_type)
         
         for idx = length(im_paths)
             im = imread(im_paths{idx});
-            label_data(idx, :) = make_hist(im, sift_type, vocab);
+            label_data(idx, :) = make_hist(im, sift_type, vocabulary);
         end
         
         train_data = [train_data; [label_data, ones(length(im_paths), 1)*label]];
@@ -83,4 +102,12 @@ function hist = make_hist(im, sift_type, vocab)
         hist(words(i)) = hist(words(i)) + 1;
     end
     hist = hist ./ size(words,1);
+end
+
+function tfiles = get_test_files(test_dirs, file_format)
+    tfiles = cell(0, 1)
+    for idx = 1:length(test_dirs)
+        im_paths = get_imagepaths(test_dirs{idx}, file_format); % get file paths
+        tfiles = [tfiles; im_paths];
+    end
 end

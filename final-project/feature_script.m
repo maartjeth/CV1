@@ -9,3 +9,4 @@ vocab_size = 20;
 sift_type = 'ip_intensity_1';
   
 prepare_features(source_dirs, target_dir, file_format, vocab_percentage, vocab_size, sift_type);
+
