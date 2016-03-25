@@ -42,6 +42,8 @@ function im_classification_maartje()
     labels = classify_im(SVMModel, X_test);
     
     % computing MAP
+    labels = [1, 0, 1, 0, 1];
+    t = [1, 0, 1, 0, 0];
     MAP = test(labels, t)
                 
     
@@ -130,23 +132,24 @@ end
 
 function MAP = test(labels, t)
     % qualatitive part
-    test_matrix = [labels, t];
+    test_matrix = [labels', t'];
     quant_test_matrix = sortrows(test_matrix, -1);
     %MSE = (quant_test_matrix(1) - quant_test_matrix(2)).^2;
     
     % quantitative part
     fc = 0;
     total_score = 0;
-    for i=1:size(quant_test_matrix, 2)
-        fc = fc + quant_test_matrix(i);
-        if quant_test_matrix(i) == 1
+    for i=1:size(quant_test_matrix, 1)
+        quant_test_matrix(i, 2);
+        fc = fc + quant_test_matrix(i, 2);
+        if quant_test_matrix(i, 2) == 1
             score = fc / i;
         else 
-            score = fc;
+            score = 0;
         end
         total_score = total_score + score;
     end
     
-    MAP = total_score / size(quant_test_matrix, 2);    
+    MAP = total_score / size(quant_test_matrix, 1);    
 end
 
