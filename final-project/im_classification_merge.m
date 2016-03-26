@@ -31,22 +31,22 @@ function im_classification_merge()
     
     
     % Classifying and computing MAP   
-    [X_test, t] = make_data(test_data, 1)
-    labels_1 = classify_im(SVMModel_1, X_test)    
+    [X_test, t] = make_data(test_data, 1);
+    labels_1 = classify_im(SVMModel_1, X_test);
     MAP_1 = test(labels_1, t)
     
     
     [X_test, t] = make_data(test_data, 2);
     labels_2 = classify_im(SVMModel_2, X_test);    
-    MAP_2 = test(labels_2, t);
+    MAP_2 = test(labels_2, t)
     
     [X_test, t] = make_data(test_data, 3);
     labels_3 = classify_im(SVMModel_3, X_test);    
-    MAP_3 = test(labels_3, t);
+    MAP_3 = test(labels_3, t)
     
     [X_test, t] = make_data(test_data, 4);
     labels_4 = classify_im(SVMModel_4, X_test);
-    MAP_4 = test(labels_4, t);
+    MAP_4 = test(labels_4, t)
 
 end
 
@@ -67,15 +67,14 @@ end
 
 function MAP = test(labels, t)
     % qualatitive part
-    test_matrix = [labels', t'];
+    test_matrix = [labels, t];
     quant_test_matrix = sortrows(test_matrix, -1);
-    %MSE = (quant_test_matrix(1) - quant_test_matrix(2)).^2;
+    MSE = sum((quant_test_matrix(:, 1) - quant_test_matrix(:, 2)).^2)/size(quant_test_matrix, 1);
     
     % quantitative part
     fc = 0;
     total_score = 0;
     for i=1:size(quant_test_matrix, 1)
-        quant_test_matrix(i, 2);
         fc = fc + quant_test_matrix(i, 2);
         if quant_test_matrix(i, 2) == 1
             score = fc / i;
@@ -85,5 +84,5 @@ function MAP = test(labels, t)
         total_score = total_score + score;
     end
     
-    MAP = total_score / size(quant_test_matrix, 1);    
+    MAP = double(total_score / 50);    
 end

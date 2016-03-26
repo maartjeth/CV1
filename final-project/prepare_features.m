@@ -27,6 +27,7 @@ function [vfiles, ffiles] = divide_data(source_dirs, file_format, vocab_percenta
     ffiles = cell(length(source_dirs), 1);      % cell vector of vectors for each class
     
     for idx = 1:length(source_dirs)
+        display(source_dirs{idx})
         im_paths = get_imagepaths(source_dirs{idx}, file_format); % get file paths
         
         im_paths = im_paths( randperm(length(im_paths)),: ); % shuffle file paths
@@ -49,13 +50,17 @@ function vocabulary = build_vocab(im_paths, sift_type, vocab_size)
         
     end
     
-    [~, vocabulary] = kmeans(vocab_features, vocab_size);
+    [~, vocabulary] = kmeans(vocab_features, vocab_size, 'MaxIter', 500);
 end
 
 function features = sift(im, type)
     switch type
         case 'ip_intensity_1'
-            [~, features] = vl_sift(single(rgb2gray(im)));
+            if size(im, 3) == 3
+                [~, features] = vl_sift(single(rgb2gray(im)));
+            else
+                [~, features] = vl_sift(single(im));
+            end
         case 'dense_intensity_1'
             'a'
         case 'ip_RGB_3'
