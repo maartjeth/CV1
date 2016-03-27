@@ -32,21 +32,21 @@ function im_classification_merge()
     
     % Classifying and computing MAP   
     [X_test, t] = make_data(test_data, 1);
-    labels_1 = classify_im(SVMModel_1, X_test);
-    MAP_1 = test(labels_1, t)
+    [labels_1, scores_1] = classify_im(SVMModel_1, X_test);
+    MAP_1 = test(scores_1, t)
     
     
     [X_test, t] = make_data(test_data, 2);
-    labels_2 = classify_im(SVMModel_2, X_test);    
-    MAP_2 = test(labels_2, t)
+    [labels_2, scores_2] = classify_im(SVMModel_2, X_test);    
+    MAP_2 = test(scores_2, t)
     
     [X_test, t] = make_data(test_data, 3);
-    labels_3 = classify_im(SVMModel_3, X_test);    
-    MAP_3 = test(labels_3, t)
+    [labels_3, scores_3] = classify_im(SVMModel_3, X_test);    
+    MAP_3 = test(scores_3, t)
     
     [X_test, t] = make_data(test_data, 4);
-    labels_4 = classify_im(SVMModel_4, X_test);
-    MAP_4 = test(labels_4, t)
+    [labels_4, scores_4] = classify_im(SVMModel_4, X_test);
+    MAP_4 = test(scores_4, t)
 
 end
 
@@ -61,14 +61,14 @@ function SVMModel = train_SVM(X, y)
     SVMModel = fitcsvm(X, y, 'KernelFunction', 'rbf', 'KernelScale', 'auto', 'Standardize', true);
 end
 
-function labels = classify_im(SVMModel, X)
-    labels = predict(SVMModel, X);
+function [labels, scores] = classify_im(SVMModel, X)
+    [labels, scores] = predict(SVMModel, X);
 end
 
-function MAP = test(labels, t)
+function MAP = test(scores, t)
     % qualatitive part
-    test_matrix = [labels, t];
-    quant_test_matrix = sortrows(test_matrix, -1);
+    test_matrix = [scores(:,1), t];
+    quant_test_matrix = sortrows(test_matrix, 1);
     MSE = sum((quant_test_matrix(:, 1) - quant_test_matrix(:, 2)).^2)/size(quant_test_matrix, 1);
     
     % quantitative part
