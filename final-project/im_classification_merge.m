@@ -1,10 +1,10 @@
-function im_classification_merge()
+function im_classification_merge(sift_type, vocab_size)
 
     % RUN 1 - Intensity sift
 
     target_dir = '.\Caltech4\debug\target';
-    sift_type = 'ip_intensity_1';
-    vocab_size = 400;
+    %sift_type = 'ip_intensity_1';
+    %vocab_size = 400;
 
     filename_train = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
     filename_test = strcat(target_dir, '\test_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');

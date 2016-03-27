@@ -41,13 +41,13 @@ end
 
 function vocabulary = build_vocab(im_paths, sift_type, vocab_size)
     num_channels = str2double(sift_type(end));
-    vocab_features = zeros(0, 128*num_channels);
-
+    vocab_features = zeros(0, 128);%*num_channels);
+    display('buidling vocab');
+    
     for i=1:size(im_paths, 1)
         im = imread(im_paths{i});
         features = sift(im, sift_type);
-        vocab_features(end+1:end+size(features, 2), :) = features';
-        
+        vocab_features(end+1:end+size(features, 2), :) = features';        
     end
     
     [~, vocabulary] = kmeans(vocab_features, vocab_size, 'MaxIter', 500);
@@ -61,14 +61,17 @@ function features = sift(im, type)
             else
                 [~, features] = vl_sift(single(im));
             end
+            
         case 'dense_intensity_1'
             if size(im, 3) == 3
                 [~, features] = vl_phow(single(rgb2gray(im)), 'Step', 8);
             else
                 [~, features] = vl_phow(single(im), 'Step', 8);
             end
+            
         case 'ip_RGB_3'
             if size(im, 3) == 3
+                %display('getting features');
                 [~, features_1] = vl_sift(single(im(:, :, 1)));
                 [~, features_2] = vl_sift(single(im(:, :, 2)));
                 [~, features_3] = vl_sift(single(im(:, :, 3)));
@@ -76,7 +79,13 @@ function features = sift(im, type)
             end             
                         
         case 'dense_RGB_3'
-            'a'
+            if size(im, 3) == 3
+                [~, features_1] = vl_phow(single(im(:, :, 1)), 'Step', 8);
+                [~, features_2] = vl_phow(single(im(:, :, 2)), 'Step', 8);
+                [~, features_3] = vl_phow(single(im(:, :, 3)), 'Step', 8);
+                features = [features_1, features_2, features_3];
+            end  
+            
         case 'ip_rgb_3'
             if size(im, 3) == 3
                 im_abs = sum(im, 3);
@@ -85,15 +94,25 @@ function features = sift(im, type)
                     im_mat(:,:,c) = double(im(:,:,c))./double(im_abs);
                 end       
             
-            [~, features_1] = vl_sift(single(im_mat(:, :, 1)));
-            [~, features_2] = vl_sift(single(im_mat(:, :, 2)));
-            [~, features_3] = vl_sift(single(im_mat(:, :, 3)));
-            features = [features_1, features_2, features_3];
-            
+                [~, features_1] = vl_sift(single(im_mat(:, :, 1)));
+                [~, features_2] = vl_sift(single(im_mat(:, :, 2)));
+                [~, features_3] = vl_sift(single(im_mat(:, :, 3)));
+                features = [features_1, features_2, features_3];
             end
             
         case 'dense_rgb_3'
-            'a'
+            if size(im, 3) == 3
+                im_abs = sum(im, 3);
+                im_mat = zeros(size(im));
+                for c = 1:3        
+                    im_mat(:,:,c) = double(im(:,:,c))./double(im_abs);
+                end       
+            
+                [~, features_1] = vl_phow(single(im_mat(:, :, 1)), 'Step', 8);
+                [~, features_2] = vl_phow(single(im_mat(:, :, 2)), 'Step', 8);
+                [~, features_3] = vl_phow(single(im_mat(:, :, 3)), 'Step', 8);
+                features = [features_1, features_2, features_3];
+            end
         case 'ip_opponent_3'
             if size(im, 3) == 3
                 rval = im(:,:,1);
@@ -122,8 +141,8 @@ function features = sift(im, type)
                 im_mat(:,:,3) = (double(rval) + double(gval) + double(bval)) ./ sqrt(3);
 
                 [~, features_1] = vl_phow(single(im_mat(:, :, 1)), 'Step', 8);
-                [~, features_2] = vl_phow(single(im_mat(:, :, 2)));
-                [~, features_3] = vl_phow(single(im_mat(:, :, 3)));
+                [~, features_2] = vl_phow(single(im_mat(:, :, 2)), 'Step', 8);
+                [~, features_3] = vl_phow(single(im_mat(:, :, 3)), 'Step', 8);
                 features = [features_1, features_2, features_3];
             end
         otherwise

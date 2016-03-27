@@ -41,13 +41,13 @@ end
 
 function vocabulary = build_vocab(im_paths, sift_type, vocab_size)
     num_channels = str2double(sift_type(end));
-    vocab_features = zeros(0, 128*num_channels);
-
+    vocab_features = zeros(0, 128);%*num_channels);
+    display('buidling vocab');
+    
     for i=1:size(im_paths, 1)
         im = imread(im_paths{i});
         features = sift(im, sift_type);
-        vocab_features(end+1:end+size(features, 2), :) = features';
-        
+        vocab_features(end+1:end+size(features, 2), :) = features';        
     end
     
     [~, vocabulary] = kmeans(vocab_features, vocab_size, 'MaxIter', 500);
@@ -71,6 +71,7 @@ function features = sift(im, type)
             
         case 'ip_RGB_3'
             if size(im, 3) == 3
+                %display('getting features');
                 [~, features_1] = vl_sift(single(im(:, :, 1)));
                 [~, features_2] = vl_sift(single(im(:, :, 2)));
                 [~, features_3] = vl_sift(single(im(:, :, 3)));
@@ -80,8 +81,8 @@ function features = sift(im, type)
         case 'dense_RGB_3'
             if size(im, 3) == 3
                 [~, features_1] = vl_phow(single(im(:, :, 1)), 'Step', 8);
-                [~, features_2] = vl_sift(single(im(:, :, 2)), 'Step', 8);
-                [~, features_3] = vl_sift(single(im(:, :, 3)), 'Step', 8);
+                [~, features_2] = vl_phow(single(im(:, :, 2)), 'Step', 8);
+                [~, features_3] = vl_phow(single(im(:, :, 3)), 'Step', 8);
                 features = [features_1, features_2, features_3];
             end  
             
