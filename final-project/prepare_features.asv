@@ -6,7 +6,6 @@ function prepare_features(source_dirs, target_dir, file_format, vocab_percentage
 
     
     [vfiles, ffiles] = divide_data(source_dirs, file_format, vocab_percentage);
-
     vocabulary = build_vocab(vfiles, sift_type, vocab_size);
     train_data = build_histograms(ffiles, vocabulary, sift_type);
     
@@ -36,21 +35,34 @@ function [vfiles, ffiles] = divide_data(source_dirs, file_format, vocab_percenta
         vfiles = [vfiles; im_paths(1:lastv,:)]; 
         ffiles{idx} = im_paths(lastv+1:end,:);
     end
-    
+    size(vfiles)
+    size(ffiles)
 end
 
 function vocabulary = build_vocab(im_paths, sift_type, vocab_size)
     num_channels = str2double(sift_type(end));
     vocab_features = zeros(0, 128);%*num_channels);
-    display('buidling vocab');
+    display('building vocab');
     
     for i=1:size(im_paths, 1)
         im = imread(im_paths{i});
         features = sift(im, sift_type);
         vocab_features(end+1:end+size(features, 2), :) = features';        
+    end  
+    
+   
+    subset_size = 100000;
+    if size(vocab_features, 1) > subset_size
+        rand = randperm(size(vocab_features, 1));
+        subset_vocab_features = vocab_features(rand(1:subset_size), :);
+    else
+        subset_vocab_features = vocab_features;
     end
     
-    [~, vocabulary] = kmeans(vocab_features, vocab_size, 'MaxIter', 500);
+    [vocabulary, ~] = vl_kmeans(double(subset_vocab_features'), vocab_size);
+    display('built vocab')
+    size(vocabulary)
+    %[~, vocabulary] = kmeans(vocab_features, vocab_size, 'MaxIter', 700);
 end
 
 function features = sift(im, type)
@@ -152,10 +164,11 @@ end
 
 function train_data = build_histograms(label_sets, vocabulary, sift_type)
     train_data = zeros(0, size(vocabulary, 1) + 1); % last index is the label
-    
+    %length(label_sets)
     for label = 1:length(label_sets)
         im_paths = label_sets{label};
-        label_data = zeros(length(im_paths), size(vocabulary, 1));
+        size(im_paths)
+        label_data = zeros(length(im_paths), size(vocabulary, 2));
         
         for idx = 1:length(im_paths)
             im = imread(im_paths{idx});
@@ -169,11 +182,15 @@ end
 function hist = make_hist(im, sift_type, vocab)    
 
     desc = sift(im, sift_type);
-    words = knnsearch(vocab, double(desc'));
-    hist = zeros(1, size(vocab, 1));
-    for i = 1:size(words,1)
-        hist(words(i)) = hist(words(i)) + 1;
-    end
+    %size(vocab)
+    %size(desc)
+    words = dsearchn(vocab', double(desc)');
+    %words = knnsearch(vocab, double(desc'));
+    hist = histcounts(words, size(vocab, 2));
+    %hist = zeros(1, size(vocab, 1));
+    %for i = 1:size(words,1)
+    %    hist(words(i)) = hist(words(i)) + 1;
+    %end
     hist = hist ./ double(size(words,1));
 end
 
