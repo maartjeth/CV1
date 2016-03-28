@@ -2,12 +2,15 @@ function im_classification_merge(sift_type, vocab_size)
 
     % RUN 1 - Intensity sift
 
-    target_dir = '.\Caltech4\debug\target';
-    %sift_type = 'ip_intensity_1';
-    %vocab_size = 400;
-
+    target_dir = '.\Caltech4\FeatureData';
+    sift_type = 'ip_intensity_1';
+    vocab_size = 400;
+    
     filename_train = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
     filename_test = strcat(target_dir, '\test_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
+    
+    test_dirs = {'.\Caltech4\ImageData\airplanes_test', '.\Caltech4\ImageData\cars_test', '.\Caltech4\ImageData\faces_test', '.\Caltech4\ImageData\motorbikes_test'};
+    target_path = strcat(target_dir, '\html_blob_', sift_type, '_voc_', num2str(vocab_size),'.txt');
     
     % training
     load(filename_train);
@@ -35,25 +38,29 @@ function im_classification_merge(sift_type, vocab_size)
     %[X, y] = make_data(train_data, 1);
     [labels_1, scores_1] = classify_im(SVMModel_1, X_test);
     AP_1 = test(scores_1, t)
-    
+    col1 = get_image_order(test_dirs, scores_1);
     
     [X_test, t] = make_data(test_data, 2);
     %[X, y] = make_data(train_data, 2);
     [labels_2, scores_2] = classify_im(SVMModel_2, X_test);    
     AP_2 = test(scores_2, t)
+    col2 = get_image_order(test_dirs, scores_2);
     
     [X_test, t] = make_data(test_data, 3);
     %[X, y] = make_data(train_data, 3);
     [labels_3, scores_3] = classify_im(SVMModel_3, X_test);    
     AP_3 = test(scores_3, t)
+    col3 = get_image_order(test_dirs, scores_3);
     
     [X_test, t] = make_data(test_data, 4);
     %[X, y] = make_data(train_data, 4);
     [labels_4, scores_4] = classify_im(SVMModel_4, X_test);
     AP_4 = test(scores_4, t)
+    col4 = get_image_order(test_dirs, scores_4);
     
     MAP = (AP_1 + AP_2 + AP_3 + AP_4) / 4
 
+    stitch_columns_html(target_path, col1, col2, col3, col4)
 end
 
 function [X, y] = make_data(data, class)
