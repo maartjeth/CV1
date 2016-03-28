@@ -2,8 +2,8 @@ function im_classification_merge(sift_type, vocab_size)
 
     % RUN 1 - Intensity sift
 
-    target_dir = '.\Caltech4\FeatureData';
-    sift_type = 'ip_intensity_1';
+    target_dir = '.\back1335';
+    sift_type = 'ip_rgb_3';
     vocab_size = 400;
     
     filename_train = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
