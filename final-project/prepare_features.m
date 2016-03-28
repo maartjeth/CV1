@@ -47,13 +47,13 @@ end
 
 function vocabulary = build_vocab(im_paths, sift_type, vocab_size)
     num_channels = str2double(sift_type(end));
-    vocab_features = zeros(0, 128);%*num_channels);
+    vocab_features = zeros(0, 128); %*num_channels);
     display('building vocab');
     
     for i=1:size(im_paths, 1)
         im = imread(im_paths{i});
         features = sift(im, sift_type);
-        vocab_features(end+1:end+size(features, 2), :) = features';        
+        vocab_features(end+1:end+size(features, 2), :) = features';       
     end  
     
    
@@ -65,7 +65,8 @@ function vocabulary = build_vocab(im_paths, sift_type, vocab_size)
         subset_vocab_features = vocab_features;
     end
     
-    [vocabulary, ~] = vl_kmeans(double(subset_vocab_features'), vocab_size);
+    %[vocabulary, ~] = vl_kmeans(double(subset_vocab_features'), vocab_size);
+    [vocabulary, ~] = vl_kmeans(double(vocab_features'), vocab_size);
     display('built vocab')
     size(vocabulary)
     %[~, vocabulary] = kmeans(vocab_features, vocab_size, 'MaxIter', 700);
