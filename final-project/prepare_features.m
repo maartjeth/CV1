@@ -97,10 +97,13 @@ function features = sift(im, type)
             end             
                         
         case 'dense_RGB_3'
-            if size(im, 3) == 3
-                [~, features_1] = vl_phow(single(im(:, :, 1)), 'Step', 8);
-                [~, features_2] = vl_phow(single(im(:, :, 2)), 'Step', 8);
-                [~, features_3] = vl_phow(single(im(:, :, 3)), 'Step', 8);
+             if size(im, 3) == 3
+                [~, features_1] = vl_dsift(single(im(:, :, 1)), 'Step', 10);
+                [~, features_2] = vl_dsift(single(im(:, :, 2)), 'Step', 10);
+                [~, features_3] = vl_dsift(single(im(:, :, 3)), 'Step', 10);
+%                 [~, features_1] = vl_phow(single(im(:, :, 1)), 'Color', 'RGB', 'Step', 8);
+%                 [~, features_2] = vl_phow(single(im(:, :, 2)), 'Color', 'RGB', 'Step', 8);
+%                 [~, features_3] = vl_phow(single(im(:, :, 3)), 'Color', 'RGB', 'Step', 8);
                 features = [features_1, features_2, features_3];
             end  
             
@@ -126,9 +129,9 @@ function features = sift(im, type)
                     im_mat(:,:,c) = double(im(:,:,c))./double(im_abs);
                 end       
             
-                [~, features_1] = vl_phow(single(im_mat(:, :, 1)), 'Step', 8);
-                [~, features_2] = vl_phow(single(im_mat(:, :, 2)), 'Step', 8);
-                [~, features_3] = vl_phow(single(im_mat(:, :, 3)), 'Step', 8);
+                [~, features_1] = vl_dsift(single(im(:, :, 1)), 'Step', 10);
+                [~, features_2] = vl_dsift(single(im(:, :, 2)), 'Step', 10);
+                [~, features_3] = vl_dsift(single(im(:, :, 3)), 'Step', 10);
                 features = [features_1, features_2, features_3];
             end
         case 'ip_opponent_3'
@@ -158,9 +161,9 @@ function features = sift(im, type)
                 im_mat(:,:,2) = (double(rval) + double(gval) - double(2 * bval)) ./ sqrt(6);
                 im_mat(:,:,3) = (double(rval) + double(gval) + double(bval)) ./ sqrt(3);
 
-                [~, features_1] = vl_phow(single(im_mat(:, :, 1)), 'Step', 8);
-                [~, features_2] = vl_phow(single(im_mat(:, :, 2)), 'Step', 8);
-                [~, features_3] = vl_phow(single(im_mat(:, :, 3)), 'Step', 8);
+                [~, features_1] = vl_dsift(single(im(:, :, 1)), 'Step', 10);
+                [~, features_2] = vl_dsift(single(im(:, :, 2)), 'Step', 10);
+                [~, features_3] = vl_dsift(single(im(:, :, 3)), 'Step', 10);
                 features = [features_1, features_2, features_3];
             end
         otherwise
