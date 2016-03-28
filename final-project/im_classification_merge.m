@@ -2,9 +2,9 @@ function im_classification_merge(sift_type, vocab_size)
 
     % RUN 1 - Intensity sift
 
-    target_dir = '.\back1335';
-    sift_type = 'ip_rgb_3';
-    vocab_size = 400;
+    target_dir = '.\debug\target';
+    %sift_type = 'ip_rgb_3';
+    %vocab_size = 400;
     
     filename_train = strcat(target_dir, '\train_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
     filename_test = strcat(target_dir, '\test_data_', sift_type, '_voc_', num2str(vocab_size),'.mat');
@@ -71,8 +71,8 @@ function [X, y] = make_data(data, class)
 end
 
 function SVMModel = train_SVM(X, y)
-    %SVMModel = fitcsvm(X, y, 'KernelFunction', 'rbf', 'KernelScale', 'auto', 'Standardize', true);
-    SVMModel = fitcsvm(X, y, 'KernelFunction', 'linear', 'KernelScale', 'auto', 'Standardize', true);
+    SVMModel = fitcsvm(X, y, 'KernelFunction', 'rbf', 'KernelScale', 'auto', 'Standardize', true);
+    %SVMModel = fitcsvm(X, y, 'KernelFunction', 'linear', 'KernelScale', 'auto', 'Standardize', true);
 end
 
 function [labels, scores] = classify_im(SVMModel, X)

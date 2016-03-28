@@ -108,7 +108,7 @@ function features = sift(im, type)
                 features = [features_1, features_2, features_3];
             end  
             
-        case 'ip_rgb_3'
+        case 'ip_normrgb_3'
             if size(im, 3) == 3
                 im_abs = sum(im, 3);
                 im_mat = zeros(size(im));
@@ -122,7 +122,7 @@ function features = sift(im, type)
                 features = [features_1, features_2, features_3];
             end
             
-        case 'dense_rgb_3'
+        case 'dense_normrgb_3'
             if size(im, 3) == 3
                 im_abs = sum(im, 3);
                 im_mat = zeros(size(im));
